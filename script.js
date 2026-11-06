@@ -242,11 +242,25 @@ function loadConversations() {
 
 
 // Add a message to the screen
+
 function addMessage(text, sender, shouldSave = true) {
     const message = document.createElement("div");
 
     message.classList.add("message", sender);
     message.textContent = text;
+
+    // Align AI messages left and user messages right
+    message.style.display = "block";
+    message.style.width = "fit-content";
+    message.style.maxWidth = "90%";
+
+    if (sender === "user") {
+        message.style.marginLeft = "auto";
+        message.style.marginRight = "0";
+    } else {
+        message.style.marginLeft = "0";
+        message.style.marginRight = "auto";
+    }
 
     chatBox.appendChild(message);
     chatBox.scrollTop = chatBox.scrollHeight;
@@ -257,6 +271,7 @@ function addMessage(text, sender, shouldSave = true) {
 
     return message;
 }
+
 
 
 // Send a message to Yefsa AI
