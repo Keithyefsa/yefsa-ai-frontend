@@ -1,123 +1,242 @@
+
+/* =================================
+   YEFSATECH AI: MIDNIGHT GLOW THEME
+================================= */
+
 * {
     box-sizing: border-box;
 }
 
+:root {
+    --background: #070812;
+    --surface: #101326;
+    --surface-light: #171b35;
+    --purple: #9b5cff;
+    --blue: #438cff;
+    --cyan: #40d9ff;
+    --text: #f3f4ff;
+    --muted: #9299b5;
+    --border: rgba(155, 92, 255, 0.22);
+}
+
 body {
     margin: 0;
+    min-height: 100vh;
     font-family: Arial, sans-serif;
-    background: #f4A460;
-    color: #202124;
+    background:
+        radial-gradient(ellipse at 15% 10%, rgba(91, 48, 180, 0.18), transparent 40%),
+        radial-gradient(ellipse at 90% 65%, rgba(28, 102, 190, 0.13), transparent 40%),
+        var(--background);
+    color: var(--text);
+    overflow-x: hidden;
 }
 
-header {
-    background: #111827;
-    color: white;
-    padding: 20px;
-    text-align: center;
+/* Subtle ambient glitter */
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background-image:
+        radial-gradient(1px 1px at 10% 20%, #ffffff80 50%, transparent 100%),
+        radial-gradient(2px 2px at 75% 15%, #a78bfa80 50%, transparent 100%),
+        radial-gradient(1px 1px at 40% 70%, #40d9ff70 50%, transparent 100%),
+        radial-gradient(1px 1px at 85% 85%, #ffffff70 50%, transparent 100%),
+        radial-gradient(2px 2px at 25% 90%, #9b5cff70 50%, transparent 100%);
+    background-size: 300px 300px;
+    animation: starGlow 8s ease-in-out infinite alternate;
 }
 
-header h1 {
-    margin: 0;
-    color: #60a5fa;
-}
-
-header p {
-    margin-bottom: 0;
-    color: #d1d5db;
-}
-
-.chat-container {
-    max-width: 700px;
-    margin: 30px auto;
-    padding: 20px;
-}
-
-.chat-box {
-    background: black;
-    min-height: 650px;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
-}
-
-.message {
-    padding: 12px 15px;
-    margin: 12px 0;
-    border-radius: 12px;
-    max-width: 85%;
-    line-height: 1.5;
-}
-
-.bot {
-    background: #e8efff;
-    margin-right: auto;
-}
-
-.user {
-    background: #2563eb;
-    color: white;
-    margin-left: auto;
-}
-
-.input-area {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-input {
-    flex: 1;
-    padding: 14px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 16px;
-    min-width: 0;
-}
-
-button {
-    background: #2563eb;
-    color: white;
-    border: none;
-    padding: 14px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #1d4ed8;
-}
-
-@media (max-width: 600px) {
-    .chat-container {
-        margin: 15px auto;
-        padding: 12px;
+@keyframes starGlow {
+    from {
+        opacity: 0.35;
     }
-
-    .chat-box {
-        min-height: 350px;
+    to {
+        opacity: 0.85;
     }
 }
+
+/* Header */
+
+header,
 .app-header {
     position: sticky;
     top: 0;
     z-index: 1000;
     width: 100%;
-    box-sizing: border-box;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    background: #111827;
+    padding: 16px 20px;
+    background: rgba(8, 10, 25, 0.88);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
     color: white;
 }
 
+header h1,
 .app-header h1 {
     margin: 0;
-    font-size: 22px;
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #c39aff;
+    text-shadow: 0 0 15px rgba(155, 92, 255, 0.65);
 }
 
+header p {
+    margin-bottom: 0;
+    color: var(--muted);
+}
+
+/* Main chat layout */
+
+.chat-container {
+    width: 100%;
+    max-width: 850px;
+    margin: 20px auto;
+    padding: 15px 18px;
+}
+
+/* Remove the visible chat-box container */
+
+.chat-box {
+    background: transparent;
+    min-height: 65vh;
+    padding: 10px 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* Message bubbles */
+
+.message {
+    width: fit-content;
+    max-width: 85%;
+    padding: 14px 17px;
+    margin: 18px 0;
+    border-radius: 18px;
+    line-height: 1.65;
+    font-size: 15px;
+    overflow-wrap: anywhere;
+    animation: messageArrival 0.45s ease both;
+}
+
+@keyframes messageArrival {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Yefsa AI messages */
+
+.bot {
+    margin-right: auto;
+    color: #e9e7ff;
+    background: linear-gradient(
+        135deg,
+        rgba(35, 30, 67, 0.95),
+        rgba(17, 29, 55, 0.95)
+    );
+    border: 1px solid rgba(139, 111, 255, 0.3);
+    border-bottom-left-radius: 5px;
+    box-shadow: 0 0 18px rgba(111, 70, 220, 0.09);
+}
+
+/* User messages */
+
+.user {
+    margin-left: auto;
+    color: white;
+    background: linear-gradient(
+        135deg,
+        #7139c7,
+        #315fd0
+    );
+    border: 1px solid rgba(164, 133, 255, 0.55);
+    border-bottom-right-radius: 5px;
+    box-shadow: 0 0 20px rgba(102, 65, 220, 0.2);
+}
+
+/* Thinking animation */
+
+.thinking {
+    animation: thinkingPulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes thinkingPulse {
+    from {
+        opacity: 0.45;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Message input */
+
+.input-area {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    padding: 10px;
+    background: rgba(17, 20, 42, 0.92);
+    border: 1px solid rgba(155, 92, 255, 0.35);
+    border-radius: 18px;
+    box-shadow: 0 0 22px rgba(105, 69, 205, 0.12);
+}
+
+input {
+    flex: 1;
+    min-width: 0;
+    padding: 14px;
+    border: none;
+    outline: none;
+    border-radius: 12px;
+    background: transparent;
+    color: white;
+    font-size: 16px;
+}
+
+input::placeholder {
+    color: #858ba8;
+}
+
+button {
+    background: linear-gradient(135deg, #8c4de5, #356fe0);
+    color: white;
+    border: none;
+    padding: 13px 19px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.25s ease;
+}
+
+button:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 16px rgba(139, 92, 246, 0.45);
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Developer button */
+
 .developer-btn {
-    background: #16a34a;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
     color: white;
     text-decoration: none;
     padding: 10px 14px;
@@ -125,6 +244,9 @@ button:hover {
     font-size: 13px;
     font-weight: bold;
 }
+
+/* Hamburger menu */
+
 .menu-container {
     position: relative;
     display: inline-block;
@@ -144,10 +266,10 @@ button:hover {
     top: 100%;
     right: 0;
     width: 220px;
-    background: #1f2937;
-    border: 1px solid #374151;
-    border-radius: 10px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    background: #14172d;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
     z-index: 9999;
     overflow: hidden;
 }
@@ -156,11 +278,10 @@ button:hover {
 .dropdown-menu a {
     display: block;
     width: 100%;
-    box-sizing: border-box;
     padding: 14px;
     background: transparent;
     border: none;
-    border-bottom: 1px solid #374151;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
     color: white;
     text-align: left;
     text-decoration: none;
@@ -170,12 +291,15 @@ button:hover {
 
 .dropdown-menu button:hover,
 .dropdown-menu a:hover {
-    background: #374151;
+    background: #282044;
 }
 
 .dropdown-menu[hidden] {
     display: none !important;
 }
+
+/* Chat history */
+
 .history-panel {
     position: fixed;
     top: 75px;
@@ -183,13 +307,13 @@ button:hover {
     right: 10px;
     max-height: 75vh;
     overflow-y: auto;
-    background: #111827;
+    background: #11142a;
     color: white;
-    border: 1px solid #374151;
-    border-radius: 12px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
     padding: 15px;
     z-index: 3000;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.6);
 }
 
 .history-panel[hidden] {
@@ -200,7 +324,7 @@ button:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #374151;
+    border-bottom: 1px solid var(--border);
     padding-bottom: 10px;
 }
 
@@ -214,7 +338,6 @@ button:hover {
     color: white;
     border: none;
     font-size: 22px;
-    cursor: pointer;
 }
 
 .history-list {
@@ -225,10 +348,10 @@ button:hover {
 }
 
 .history-item {
-    background: #1f2937;
+    background: #1b1e39;
     padding: 13px;
-    border-radius: 8px;
-    border: 1px solid #374151;
+    border-radius: 10px;
+    border: 1px solid rgba(155, 92, 255, 0.2);
     color: white;
     cursor: pointer;
     text-align: left;
@@ -236,14 +359,15 @@ button:hover {
 }
 
 .history-item:hover {
-    background: #374151;
+    background: #29234a;
 }
 
 .history-item small {
     display: block;
-    color: #9ca3af;
+    color: #9299b5;
     margin-top: 5px;
 }
+
 .history-row {
     display: flex;
     align-items: center;
@@ -255,8 +379,8 @@ button:hover {
     min-width: 0;
 }
 
-.rename-chat-btn {
-    background: #374151;
+.rename-chat-btn,
+.delete-chat-btn {
     color: white;
     border: none;
     border-radius: 8px;
@@ -264,12 +388,53 @@ button:hover {
     cursor: pointer;
     font-size: 14px;
 }
+
+.rename-chat-btn {
+    background: #49328a;
+}
+
 .delete-chat-btn {
-    background: #7f1d1d;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 12px;
-    cursor: pointer;
-    font-size: 14px;
+    background: #8b263c;
+}
+
+/* Mobile layout */
+
+@media (max-width: 600px) {
+    .chat-container {
+        margin: 12px auto;
+        padding: 10px 13px;
+    }
+
+    .chat-box {
+        min-height: 60vh;
+    }
+
+    .message {
+        max-width: 90%;
+        font-size: 14px;
+        padding: 12px 14px;
+        margin: 15px 0;
+    }
+
+    .app-header {
+        padding: 14px;
+    }
+
+    .app-header h1 {
+        font-size: 20px;
+    }
+
+    .input-area {
+        gap: 6px;
+        padding: 7px;
+    }
+
+    input {
+        padding: 12px 8px;
+        font-size: 15px;
+    }
+
+    button {
+        padding: 12px 15px;
+    }
 }
