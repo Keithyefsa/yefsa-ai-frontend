@@ -17,7 +17,7 @@ const API_URL = "https://yefsa-ai-backend.onrender.com/chat";
 const CONVERSATIONS_KEY = "yefsa_ai_conversations_v1";
 const ACTIVE_CHAT_KEY = "yefsa_ai_active_chat_v1";
 const LEGACY_KEY = "yefsa_ai_chat_v1";
-
+const MEMORY_KEY = "yefsa_ai_memory_v1";
 const WELCOME_MESSAGE =
     "Hello! I'm Yefsa AI. How can I help you today?";
 
