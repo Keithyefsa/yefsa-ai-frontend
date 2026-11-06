@@ -3,24 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Yefsa AI</title>
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#111827">
-<link rel="apple-touch-icon" href="./yefsatech-icon-192.png">
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+
+    <meta name="theme-color" content="#111827">
+
+    <link rel="apple-touch-icon" href="./yefsatech-icon-192.png">
 </head>
+
 <body>
 
 <header class="app-header">
     <h1>Yefsa AI</h1>
 
     <div class="menu-container">
-        <button id="menuBtn" class="menu-btn">☰</button>
+
+        <button id="menuBtn" class="menu-btn" type="button">
+            ☰
+        </button>
 
         <div id="dropdownMenu" class="dropdown-menu" hidden>
-            <button id="newChatBtn">➕ New Chat</button>
-            <button id="deleteChatBtn">🗑️ Delete Chat</button>
-            <button id="historyBtn">🕘 Chat History</button>
+
+            <button id="newChatBtn" type="button">
+                ➕ New Chat
+            </button>
+
+            <button id="deleteChatBtn" type="button">
+                🗑️ Delete Chat
+            </button>
+
+            <button id="historyBtn" type="button">
+                🕘 Chat History
+            </button>
 
             <a href="https://wa.me/256746493603"
                target="_blank"
@@ -28,13 +45,16 @@
                 🟢 Chat with Developer
             </a>
 
-            <button id="subscribeBtn">⭐ Subscribe</button>
+            <button id="subscribeBtn" type="button">
+                ⭐ Subscribe
+            </button>
+
         </div>
     </div>
 </header>
 
-
 <div class="chat-container">
+
     <div class="chat-box" id="chatBox">
         <div class="message bot">
             Hello! I'm Yefsa AI. How can I help you today?
@@ -42,19 +62,21 @@
     </div>
 
     <div class="input-area">
+
         <input
             type="text"
             id="userInput"
             placeholder="Message Yefsa AI..."
         >
 
-        <button id="sendBtn">Send</button>
+        <button id="sendBtn" type="button">
+            Send
+        </button>
+
     </div>
-</div>
 </div>
 
 <script src="script.js"></script>
-</body>
-</html>
+
 </body>
 </html>
