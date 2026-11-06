@@ -81,9 +81,11 @@ function saveActiveChat() {
         message => message.sender === "user"
     );
 
+    if (!chat.customTitle) {
     chat.title = firstUserMessage
         ? firstUserMessage.text.slice(0, 35)
         : "New Chat";
+}
 
     chat.updatedAt = Date.now();
 
@@ -346,8 +348,10 @@ function renderHistory() {
     }
 
     conversations.forEach(chat => {
-        const item = document.createElement("button");
+        const row = document.createElement("div");
+        row.className = "history-row";
 
+        const item = document.createElement("button");
         item.className = "history-item";
         item.type = "button";
 
@@ -364,14 +368,36 @@ function renderHistory() {
 
         item.addEventListener("click", function() {
             activeChatId = chat.id;
-
             saveConversations();
             renderActiveChat();
-
             historyPanel.hidden = true;
         });
 
-        historyList.appendChild(item);
+        const renameBtn = document.createElement("button");
+        renameBtn.className = "rename-chat-btn";
+        renameBtn.type = "button";
+        renameBtn.textContent = "✏️";
+
+        renameBtn.addEventListener("click", function() {
+            const newTitle = prompt(
+                "Enter a new conversation name:",
+                chat.title
+            );
+
+            if (!newTitle || !newTitle.trim()) return;
+
+            chat.title = newTitle.trim();
+            chat.customTitle = true;
+            chat.updatedAt = Date.now();
+
+            saveConversations();
+            renderHistory();
+        });
+
+        row.appendChild(item);
+        row.appendChild(renameBtn);
+
+        historyList.appendChild(row);
     });
 }
 
