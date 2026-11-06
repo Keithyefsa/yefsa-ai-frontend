@@ -10,18 +10,29 @@
 <link rel="apple-touch-icon" href="./yefsatech-icon-192.png">
 </head>
 <body>
+
 <header class="app-header">
     <h1>Yefsa AI</h1>
 
-    <a
-        href="https://wa.me/256746493603?text=Hello%20YEFSATECH%2C%20I%20would%20like%20to%20speak%20with%20the%20developer."
-        class="developer-btn"
-        target="_blank"
-        rel="noopener noreferrer"
-    >
-        Chat with developer
-    </a>
+    <div class="menu-container">
+        <button id="menuBtn" class="menu-btn">☰</button>
+
+        <div id="dropdownMenu" class="dropdown-menu" hidden>
+            <button id="newChatBtn">➕ New Chat</button>
+            <button id="deleteChatBtn">🗑️ Delete Chat</button>
+            <button id="historyBtn">🕘 Chat History</button>
+
+            <a href="https://wa.me/256746493603"
+               target="_blank"
+               rel="noopener noreferrer">
+                🟢 Chat with Developer
+            </a>
+
+            <button id="subscribeBtn">⭐ Subscribe</button>
+        </div>
+    </div>
 </header>
+
 
 <div class="chat-container">
     <div class="chat-box" id="chatBox">
