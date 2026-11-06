@@ -244,3 +244,23 @@ button:hover {
     color: #9ca3af;
     margin-top: 5px;
 }
+.history-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.history-row .history-item {
+    flex: 1;
+    min-width: 0;
+}
+
+.rename-chat-btn {
+    background: #374151;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    font-size: 14px;
+}
