@@ -97,3 +97,31 @@ button:hover {
         min-height: 350px;
     }
 }
+.app-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #111827;
+    color: white;
+}
+
+.app-header h1 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.developer-btn {
+    background: #16a34a;
+    color: white;
+    text-decoration: none;
+    padding: 10px 14px;
+    border-radius: 25px;
+    font-size: 13px;
+    font-weight: bold;
+}
