@@ -220,10 +220,29 @@ function addMessage(text, sender, shouldSave = true) {
 
 
 // Send a message to Yefsa AI
+
 async function sendMessage() {
     const message = userInput.value.trim();
 
     if (!message || sendBtn.disabled) return;
+
+    // Get previous messages from the active conversation
+    const activeChat = conversations.find(
+        chat => chat.id === activeChatId
+    );
+
+    const history = activeChat
+        ? activeChat.messages
+            .filter(item =>
+                item.sender === "user" || item.sender === "bot"
+            )
+            .filter(item => item.text !== WELCOME_MESSAGE)
+            .slice(-20)
+            .map(item => ({
+                role: item.sender === "user" ? "user" : "model",
+                text: item.text
+            }))
+        : [];
 
     addMessage(message, "user");
 
@@ -247,7 +266,8 @@ async function sendMessage() {
             },
 
             body: JSON.stringify({
-                message: message
+                message: message,
+                history: history
             })
         });
 
@@ -280,7 +300,6 @@ async function sendMessage() {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 }
-
 
 // Menu open and close
 menuBtn.addEventListener("click", function(event) {
