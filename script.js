@@ -351,6 +351,7 @@ function renderHistory() {
         const row = document.createElement("div");
         row.className = "history-row";
 
+        // Conversation card
         const item = document.createElement("button");
         item.className = "history-item";
         item.type = "button";
@@ -373,6 +374,7 @@ function renderHistory() {
             historyPanel.hidden = true;
         });
 
+        // Rename button
         const renameBtn = document.createElement("button");
         renameBtn.className = "rename-chat-btn";
         renameBtn.type = "button";
@@ -394,8 +396,44 @@ function renderHistory() {
             renderHistory();
         });
 
+        // Delete button
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "delete-chat-btn";
+        deleteBtn.type = "button";
+        deleteBtn.textContent = "🗑️";
+
+        deleteBtn.addEventListener("click", function() {
+            const confirmed = confirm(
+                "Permanently delete '" + chat.title + "'?"
+            );
+
+            if (!confirmed) return;
+
+            conversations = conversations.filter(
+                item => item.id !== chat.id
+            );
+
+            if (activeChatId === chat.id) {
+                if (conversations.length > 0) {
+                    activeChatId = conversations[0].id;
+                } else {
+                    activeChatId = null;
+                }
+            }
+
+            if (!activeChatId) {
+                startNewChat();
+            } else {
+                saveConversations();
+                renderActiveChat();
+            }
+
+            renderHistory();
+        });
+
         row.appendChild(item);
         row.appendChild(renameBtn);
+        row.appendChild(deleteBtn);
 
         historyList.appendChild(row);
     });
