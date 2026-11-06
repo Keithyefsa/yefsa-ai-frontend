@@ -18,6 +18,46 @@ const CONVERSATIONS_KEY = "yefsa_ai_conversations_v1";
 const ACTIVE_CHAT_KEY = "yefsa_ai_active_chat_v1";
 const LEGACY_KEY = "yefsa_ai_chat_v1";
 const MEMORY_KEY = "yefsa_ai_memory_v1";
+
+// Load Yefsa AI's long-term memories
+function loadMemories() {
+    try {
+        const saved = localStorage.getItem(MEMORY_KEY);
+        const memories = saved ? JSON.parse(saved) : [];
+
+        return Array.isArray(memories) ? memories : [];
+    } catch (error) {
+        console.error("Could not load memories:", error);
+        return [];
+    }
+}
+
+// Save Yefsa AI's long-term memories
+function saveMemories(memories) {
+    localStorage.setItem(
+        MEMORY_KEY,
+        JSON.stringify(memories)
+    );
+}
+
+// Add a new memory without duplicating it
+function addMemory(memory) {
+    const memories = loadMemories();
+
+    const cleanMemory = memory.trim();
+
+    if (!cleanMemory) return;
+
+    const alreadyExists = memories.some(
+        item => item.toLowerCase() === cleanMemory.toLowerCase()
+    );
+
+    if (!alreadyExists) {
+        memories.push(cleanMemory);
+        saveMemories(memories);
+    }
+}
+
 const WELCOME_MESSAGE =
     "Hello! I'm Yefsa AI. How can I help you today?";
 
