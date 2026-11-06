@@ -264,3 +264,12 @@ button:hover {
     cursor: pointer;
     font-size: 14px;
 }
+.delete-chat-btn {
+    background: #7f1d1d;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    font-size: 14px;
+}
