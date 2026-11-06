@@ -154,8 +154,13 @@ header p {
 
 /* User messages */
 
+
 .user {
+    display: block;
+    width: fit-content;
+    max-width: 90%;
     margin-left: auto;
+    margin-right: 0;
     color: white;
     background: linear-gradient(
         135deg,
@@ -167,11 +172,6 @@ header p {
     box-shadow: 0 0 20px rgba(102, 65, 220, 0.2);
 }
 
-/* Thinking animation */
-
-.thinking {
-    animation: thinkingPulse 1.2s ease-in-out infinite alternate;
-}
 
 @keyframes thinkingPulse {
     from {
