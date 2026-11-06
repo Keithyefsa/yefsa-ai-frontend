@@ -266,6 +266,26 @@ async function sendMessage() {
 
     if (!message || sendBtn.disabled) return;
 
+    // Save an explicitly requested memory
+    const rememberMatch = message.match(
+        /^remember that\s+(.+)/i
+    );
+
+    if (rememberMatch) {
+        const memory = rememberMatch[1].trim();
+
+        addMessage(message, "user");
+        addMemory(memory);
+
+        addMessage(
+            "Got it! I've saved that to my memory on this device.",
+            "bot"
+        );
+
+        userInput.value = "";
+        return;
+    }
+
     // Get previous messages from the active conversation
     const activeChat = conversations.find(
         chat => chat.id === activeChatId
