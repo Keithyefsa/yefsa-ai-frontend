@@ -9,7 +9,9 @@ const newChatBtn = document.getElementById("newChatBtn");
 const deleteChatBtn = document.getElementById("deleteChatBtn");
 const historyBtn = document.getElementById("historyBtn");
 const subscribeBtn = document.getElementById("subscribeBtn");
-
+const historyPanel = document.getElementById("historyPanel");
+const historyList = document.getElementById("historyList");
+const closeHistoryBtn = document.getElementById("closeHistoryBtn");
 const API_URL = "https://yefsa-ai-backend.onrender.com/chat";
 
 const CONVERSATIONS_KEY = "yefsa_ai_conversations_v1";
@@ -334,43 +336,58 @@ deleteChatBtn.addEventListener("click", function() {
 });
 
 
-// Chat History option
+// Display Chat History
+function renderHistory() {
+    historyList.innerHTML = "";
+
+    if (conversations.length === 0) {
+        historyList.textContent = "No conversations yet.";
+        return;
+    }
+
+    conversations.forEach(chat => {
+        const item = document.createElement("button");
+
+        item.className = "history-item";
+        item.type = "button";
+
+        const title = document.createElement("strong");
+        title.textContent = chat.title || "New Chat";
+
+        const date = document.createElement("small");
+        date.textContent = new Date(
+            chat.updatedAt
+        ).toLocaleString();
+
+        item.appendChild(title);
+        item.appendChild(date);
+
+        item.addEventListener("click", function() {
+            activeChatId = chat.id;
+
+            saveConversations();
+            renderActiveChat();
+
+            historyPanel.hidden = true;
+        });
+
+        historyList.appendChild(item);
+    });
+}
+
+
+// Open Chat History
 historyBtn.addEventListener("click", function() {
     dropdownMenu.hidden = true;
 
-    if (conversations.length <= 1) {
-        alert("You don't have any other chats yet.");
-        return;
-    }
+    renderHistory();
+    historyPanel.hidden = false;
+});
 
-    const chatList = conversations.map(
-        (chat, index) =>
-            `${index + 1}. ${chat.title}`
-    ).join("\n");
 
-    const choice = prompt(
-        "YOUR CHAT HISTORY\n\n" +
-        chatList +
-        "\n\nEnter the number of the chat to open:"
-    );
-
-    if (choice === null) return;
-
-    const index = Number(choice) - 1;
-
-    if (
-        !Number.isInteger(index) ||
-        index < 0 ||
-        index >= conversations.length
-    ) {
-        alert("Invalid selection.");
-        return;
-    }
-
-    activeChatId = conversations[index].id;
-
-    saveConversations();
-    renderActiveChat();
+// Close Chat History
+closeHistoryBtn.addEventListener("click", function() {
+    historyPanel.hidden = true;
 });
 
 
