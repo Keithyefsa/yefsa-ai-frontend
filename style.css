@@ -176,3 +176,71 @@ button:hover {
 .dropdown-menu[hidden] {
     display: none !important;
 }
+.history-panel {
+    position: fixed;
+    top: 75px;
+    left: 10px;
+    right: 10px;
+    max-height: 75vh;
+    overflow-y: auto;
+    background: #111827;
+    color: white;
+    border: 1px solid #374151;
+    border-radius: 12px;
+    padding: 15px;
+    z-index: 3000;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+.history-panel[hidden] {
+    display: none !important;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #374151;
+    padding-bottom: 10px;
+}
+
+.history-header h2 {
+    margin: 0;
+    font-size: 19px;
+}
+
+.history-header button {
+    background: transparent;
+    color: white;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.history-item {
+    background: #1f2937;
+    padding: 13px;
+    border-radius: 8px;
+    border: 1px solid #374151;
+    color: white;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+}
+
+.history-item:hover {
+    background: #374151;
+}
+
+.history-item small {
+    display: block;
+    color: #9ca3af;
+    margin-top: 5px;
+}
