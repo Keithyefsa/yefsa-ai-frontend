@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "yefsatech-v3";
+const CACHE_NAME = "yefsatech-v4";
 
 const FILES_TO_CACHE = [
     "./",
