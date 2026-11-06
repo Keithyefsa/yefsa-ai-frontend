@@ -125,3 +125,54 @@ button:hover {
     font-size: 13px;
     font-weight: bold;
 }
+.menu-container {
+    position: relative;
+    display: inline-block;
+}
+
+.menu-btn {
+    background: transparent;
+    color: white;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 220px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.dropdown-menu button,
+.dropdown-menu a {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #374151;
+    color: white;
+    text-align: left;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.dropdown-menu button:hover,
+.dropdown-menu a:hover {
+    background: #374151;
+}
+
+.dropdown-menu[hidden] {
+    display: none !important;
+}
