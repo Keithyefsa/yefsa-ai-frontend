@@ -1,0 +1,10 @@
+{
+  "name": "Yefsa AI",
+  "short_name": "Yefsa AI",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#111827",
+  "description": "Your intelligent AI assistant by YEFSATECH"
+}
