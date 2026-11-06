@@ -59,3 +59,10 @@ userInput.addEventListener("keydown", function(event) {
         sendMessage();
     }
 });
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+            .then(() => console.log("YefsaTech is ready!"))
+            .catch(error => console.error("Service worker error:", error));
+    });
+}
