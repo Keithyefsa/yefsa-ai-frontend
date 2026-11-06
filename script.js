@@ -1,17 +1,73 @@
-
 const chatBox = document.getElementById("chatBox");
 const userInput = document.getElementById("userInput");
 const sendBtn = document.getElementById("sendBtn");
 
-const API_URL = "https://yefsa-ai-backend.onrender.com/chat";
-const STORAGE_KEY = "yefsa_ai_chat_v1";
+const menuBtn = document.getElementById("menuBtn");
+const dropdownMenu = document.getElementById("dropdownMenu");
 
-// Save conversation to the phone's browser storage
-function saveChat() {
-    const messages = Array.from(
+const newChatBtn = document.getElementById("newChatBtn");
+const deleteChatBtn = document.getElementById("deleteChatBtn");
+const historyBtn = document.getElementById("historyBtn");
+const subscribeBtn = document.getElementById("subscribeBtn");
+
+const API_URL = "https://yefsa-ai-backend.onrender.com/chat";
+
+const CONVERSATIONS_KEY = "yefsa_ai_conversations_v1";
+const ACTIVE_CHAT_KEY = "yefsa_ai_active_chat_v1";
+const LEGACY_KEY = "yefsa_ai_chat_v1";
+
+const WELCOME_MESSAGE =
+    "Hello! I'm Yefsa AI. How can I help you today?";
+
+let conversations = [];
+let activeChatId = null;
+
+
+// Generate a unique chat ID
+function makeId() {
+    return Date.now().toString() +
+        Math.random().toString(16).slice(2);
+}
+
+
+// Get the currently open conversation
+function getActiveChat() {
+    return conversations.find(
+        chat => chat.id === activeChatId
+    );
+}
+
+
+// Save all conversations
+function saveConversations() {
+    try {
+        localStorage.setItem(
+            CONVERSATIONS_KEY,
+            JSON.stringify(conversations)
+        );
+
+        localStorage.setItem(
+            ACTIVE_CHAT_KEY,
+            activeChatId
+        );
+    } catch (error) {
+        console.error("Could not save chats:", error);
+    }
+}
+
+
+// Save the currently displayed conversation
+function saveActiveChat() {
+    const chat = getActiveChat();
+
+    if (!chat) return;
+
+    chat.messages = Array.from(
         chatBox.querySelectorAll(".message")
     )
-    .filter(message => !message.classList.contains("thinking"))
+    .filter(message =>
+        !message.classList.contains("thinking")
+    )
     .map(message => ({
         text: message.textContent,
         sender: message.classList.contains("user")
@@ -19,63 +75,154 @@ function saveChat() {
             : "bot"
     }));
 
+    const firstUserMessage = chat.messages.find(
+        message => message.sender === "user"
+    );
+
+    chat.title = firstUserMessage
+        ? firstUserMessage.text.slice(0, 35)
+        : "New Chat";
+
+    chat.updatedAt = Date.now();
+
+    conversations.sort(
+        (a, b) => b.updatedAt - a.updatedAt
+    );
+
+    saveConversations();
+}
+
+
+// Display the active conversation
+function renderActiveChat() {
+    const chat = getActiveChat();
+
+    if (!chat) return;
+
+    chatBox.innerHTML = "";
+
+    chat.messages.forEach(item => {
+        const message = document.createElement("div");
+
+        message.classList.add("message", item.sender);
+        message.textContent = item.text;
+
+        chatBox.appendChild(message);
+    });
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+
+// Create a new conversation
+function startNewChat() {
+    const chat = {
+        id: makeId(),
+        title: "New Chat",
+        updatedAt: Date.now(),
+        messages: [
+            {
+                text: WELCOME_MESSAGE,
+                sender: "bot"
+            }
+        ]
+    };
+
+    conversations.unshift(chat);
+    activeChatId = chat.id;
+
+    saveConversations();
+    renderActiveChat();
+
+    dropdownMenu.hidden = true;
+}
+
+
+// Load previous conversations
+function loadConversations() {
     try {
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(messages)
+        const saved = localStorage.getItem(
+            CONVERSATIONS_KEY
         );
+
+        if (saved) {
+            const parsed = JSON.parse(saved);
+
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                conversations = parsed;
+            }
+        }
+
+        // Migrate your old saved conversation
+        if (conversations.length === 0) {
+            const legacy = localStorage.getItem(LEGACY_KEY);
+
+            if (legacy) {
+                const oldMessages = JSON.parse(legacy);
+
+                if (
+                    Array.isArray(oldMessages) &&
+                    oldMessages.length > 0
+                ) {
+                    conversations.push({
+                        id: makeId(),
+                        title: "Previous Chat",
+                        updatedAt: Date.now(),
+                        messages: oldMessages
+                    });
+                }
+            }
+        }
+
+        if (conversations.length === 0) {
+            startNewChat();
+            return;
+        }
+
+        activeChatId = localStorage.getItem(
+            ACTIVE_CHAT_KEY
+        );
+
+        if (!getActiveChat()) {
+            activeChatId = conversations[0].id;
+        }
+
+        renderActiveChat();
+        saveConversations();
+
     } catch (error) {
-        console.error("Could not save chat:", error);
+        console.error("Could not load chats:", error);
+        startNewChat();
     }
 }
 
-// Restore previous conversation
-function loadChat() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
 
-        if (!saved) return;
-
-        const messages = JSON.parse(saved);
-
-        if (!Array.isArray(messages)) return;
-
-        chatBox.innerHTML = "";
-
-        messages.forEach(item => {
-            const message = document.createElement("div");
-            message.classList.add("message", item.sender);
-            message.textContent = item.text;
-            chatBox.appendChild(message);
-        });
-
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-    } catch (error) {
-        console.error("Could not restore chat:", error);
-    }
-}
-
+// Add a message to the screen
 function addMessage(text, sender, shouldSave = true) {
     const message = document.createElement("div");
+
     message.classList.add("message", sender);
     message.textContent = text;
 
     chatBox.appendChild(message);
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    if (shouldSave) saveChat();
+    if (shouldSave) {
+        saveActiveChat();
+    }
 
     return message;
 }
 
-// Send message to Yefsa AI
+
+// Send a message to Yefsa AI
 async function sendMessage() {
     const message = userInput.value.trim();
 
     if (!message || sendBtn.disabled) return;
 
     addMessage(message, "user");
+
     userInput.value = "";
     sendBtn.disabled = true;
 
@@ -90,9 +237,11 @@ async function sendMessage() {
     try {
         const response = await fetch(API_URL, {
             method: "POST",
+
             headers: {
                 "Content-Type": "application/json"
             },
+
             body: JSON.stringify({
                 message: message
             })
@@ -101,13 +250,15 @@ async function sendMessage() {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || "Something went wrong.");
+            throw new Error(
+                data.error || "Something went wrong."
+            );
         }
 
         thinking.textContent = data.reply;
         thinking.classList.remove("thinking");
 
-        saveChat();
+        saveActiveChat();
 
     } catch (error) {
         thinking.textContent =
@@ -115,7 +266,8 @@ async function sendMessage() {
 
         thinking.classList.remove("thinking");
 
-        saveChat();
+        saveActiveChat();
+
         console.error(error);
 
     } finally {
@@ -125,16 +277,128 @@ async function sendMessage() {
     }
 }
 
+
+// Menu open and close
+menuBtn.addEventListener("click", function(event) {
+    event.stopPropagation();
+
+    dropdownMenu.hidden = !dropdownMenu.hidden;
+});
+
+
+// Close menu when tapping outside
+document.addEventListener("click", function(event) {
+    if (
+        !menuBtn.contains(event.target) &&
+        !dropdownMenu.contains(event.target)
+    ) {
+        dropdownMenu.hidden = true;
+    }
+});
+
+
+// New Chat option
+newChatBtn.addEventListener("click", function() {
+    startNewChat();
+});
+
+
+// Delete current conversation
+deleteChatBtn.addEventListener("click", function() {
+    dropdownMenu.hidden = true;
+
+    const confirmed = confirm(
+        "Delete this conversation?"
+    );
+
+    if (!confirmed) return;
+
+    conversations = conversations.filter(
+        chat => chat.id !== activeChatId
+    );
+
+    if (conversations.length === 0) {
+        startNewChat();
+    } else {
+        conversations.sort(
+            (a, b) => b.updatedAt - a.updatedAt
+        );
+
+        activeChatId = conversations[0].id;
+
+        saveConversations();
+        renderActiveChat();
+    }
+
+    alert("Conversation deleted.");
+});
+
+
+// Chat History option
+historyBtn.addEventListener("click", function() {
+    dropdownMenu.hidden = true;
+
+    if (conversations.length <= 1) {
+        alert("You don't have any other chats yet.");
+        return;
+    }
+
+    const chatList = conversations.map(
+        (chat, index) =>
+            `${index + 1}. ${chat.title}`
+    ).join("\n");
+
+    const choice = prompt(
+        "YOUR CHAT HISTORY\n\n" +
+        chatList +
+        "\n\nEnter the number of the chat to open:"
+    );
+
+    if (choice === null) return;
+
+    const index = Number(choice) - 1;
+
+    if (
+        !Number.isInteger(index) ||
+        index < 0 ||
+        index >= conversations.length
+    ) {
+        alert("Invalid selection.");
+        return;
+    }
+
+    activeChatId = conversations[index].id;
+
+    saveConversations();
+    renderActiveChat();
+});
+
+
+// Subscribe option
+subscribeBtn.addEventListener("click", function() {
+    dropdownMenu.hidden = true;
+
+    alert(
+        "Yefsa AI subscriptions are under development. Stay tuned!"
+    );
+});
+
+
+// Send button
 sendBtn.addEventListener("click", sendMessage);
 
+
+// Enter key
 userInput.addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
         sendMessage();
     }
 });
 
-// Restore chat when app opens
-loadChat();
+
+// Load saved conversations when app opens
+loadConversations();
+
 
 // Register service worker
 if ("serviceWorker" in navigator) {
