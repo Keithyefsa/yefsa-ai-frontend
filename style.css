@@ -103,7 +103,11 @@ header p {
 
 /* Remove the visible chat-box container */
 
+
 .chat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     background: transparent;
     min-height: 65vh;
     padding: 10px 0;
@@ -111,6 +115,19 @@ header p {
     border-radius: 0;
     box-shadow: none;
 }
+
+.chat-box .message.bot {
+    align-self: flex-start;
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.chat-box .message.user {
+    align-self: flex-end;
+    margin-left: auto;
+    margin-right: 0;
+}
+
 
 /* Message bubbles */
 
