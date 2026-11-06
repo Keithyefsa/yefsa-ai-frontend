@@ -1,3 +1,4 @@
+
 const chatBox = document.getElementById("chatBox");
 const userInput = document.getElementById("userInput");
 const sendBtn = document.getElementById("sendBtn");
@@ -10,17 +11,21 @@ function addMessage(text, sender) {
     message.textContent = text;
     chatBox.appendChild(message);
     chatBox.scrollTop = chatBox.scrollHeight;
+    return message;
 }
 
 async function sendMessage() {
     const message = userInput.value.trim();
 
-    if (!message) return;
+    if (!message || sendBtn.disabled) return;
 
     addMessage(message, "user");
     userInput.value = "";
     sendBtn.disabled = true;
-    sendBtn.textContent = "Thinking...";
+
+    // Display thinking inside the chat box
+    const thinking = addMessage("Thinking...", "bot");
+    thinking.classList.add("thinking");
 
     try {
         const response = await fetch(API_URL, {
@@ -39,16 +44,21 @@ async function sendMessage() {
             throw new Error(data.error || "Something went wrong.");
         }
 
-        addMessage(data.reply, "bot");
+        // Replace Thinking with the actual answer
+        thinking.textContent = data.reply;
+        thinking.classList.remove("thinking");
 
     } catch (error) {
-        addMessage("Sorry, I couldn't connect. Please try again.", "bot");
+        thinking.textContent =
+            "Sorry, I couldn't connect. Please try again.";
+
+        thinking.classList.remove("thinking");
         console.error(error);
 
     } finally {
         sendBtn.disabled = false;
-        sendBtn.textContent = "Send";
         userInput.focus();
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 }
 
@@ -59,6 +69,7 @@ userInput.addEventListener("keydown", function(event) {
         sendMessage();
     }
 });
+
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
         navigator.serviceWorker.register("./service-worker.js")
