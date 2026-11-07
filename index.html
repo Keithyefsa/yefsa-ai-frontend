@@ -1,93 +1,195 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Yefsa AI</title>
+    <title>YEFSATECH</title>
 
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 
-    <meta name="theme-color" content="#111827">
+    <meta name="theme-color" content="#000000">
 
     <link rel="apple-touch-icon" href="./yefsatech-icon-192.png">
 </head>
 
 <body>
 
-<header class="app-header">
-    <h1>Yefsa AI</h1>
+<!-- HOME SCREEN -->
+<main id="homeScreen" class="home-screen">
 
-    <div class="menu-container">
+    <div class="welcome-section">
+        <h1 id="welcomeGreeting">Welcome</h1>
+    </div>
 
-        <button id="menuBtn" class="menu-btn" type="button">
-            ☰
+    <section class="features-grid">
+
+        <button
+            id="openYefsaAiBtn"
+            class="feature-card yefsa-card"
+            type="button">
+
+            <span class="feature-icon">💬</span>
+
+            <span class="feature-title">Yefsa AI</span>
+
+            <span class="feature-description">
+                Conversation / Business Assistant
+            </span>
+
         </button>
 
-        <div id="dropdownMenu" class="dropdown-menu" hidden>
+        <button
+            id="openBmyBtn"
+            class="feature-card bmy-card"
+            type="button">
 
-            <button id="newChatBtn" type="button">
-                ➕ New Chat
+            <span class="feature-icon">💼</span>
+
+            <span class="feature-title">BMY</span>
+
+            <span class="feature-description">
+                Business Management by Yefsa
+            </span>
+
+        </button>
+
+    </section>
+
+    <footer class="home-footer">
+        POWERED BY YEFSATECH
+    </footer>
+
+</main>
+
+
+<!-- YEFSA AI SCREEN -->
+<main id="chatScreen" class="app-screen" hidden>
+
+    <header class="app-header">
+
+        <button
+            id="backHomeFromChatBtn"
+            class="back-btn"
+            type="button">
+            ←
+        </button>
+
+        <h1>Yefsa AI</h1>
+
+        <div class="menu-container">
+
+            <button id="menuBtn" class="menu-btn" type="button">
+                ☰
             </button>
 
-            <button id="deleteChatBtn" type="button">
-                🗑️ Delete Chat
-            </button>
+            <div id="dropdownMenu" class="dropdown-menu" hidden>
 
-            <button id="historyBtn" type="button">
-                🕘 Chat History
-            </button>
+                <button id="newChatBtn" type="button">
+                    ➕ New Chat
+                </button>
 
-            <a href="https://wa.me/256746493603"
-               target="_blank"
-               rel="noopener noreferrer">
-                🟢 Chat with Developer
-            </a>
+                <button id="deleteChatBtn" type="button">
+                    🗑️ Delete Chat
+                </button>
 
-            <button id="subscribeBtn" type="button">
-                ⭐ Subscribe
+                <button id="historyBtn" type="button">
+                    🕘 Chat History
+                </button>
+
+                <a href="https://wa.me/256746493603"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    🟢 Chat with Developer
+                </a>
+
+                <button id="subscribeBtn" type="button">
+                    ⭐ Subscribe
+                </button>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <div id="historyPanel" class="history-panel" hidden>
+
+        <div class="history-header">
+
+            <h2>Chat History</h2>
+
+            <button id="closeHistoryBtn" type="button">
+                ✕
             </button>
 
         </div>
-    </div>
-</header>
-<div id="historyPanel" class="history-panel" hidden>
 
-    <div class="history-header">
-        <h2>Chat History</h2>
+        <div id="historyList" class="history-list"></div>
 
-        <button id="closeHistoryBtn" type="button">
-            ✕
-        </button>
     </div>
 
-    <div id="historyList" class="history-list">
-    </div>
 
-</div>
-<div class="chat-container">
+    <div class="chat-container">
 
-    <div class="chat-box" id="chatBox">
-        <div class="message bot">
-            Hello! I'm Yefsa AI. How can I help you today?
+        <div class="chat-box" id="chatBox">
+
+            <div class="message bot">
+                Hello! I'm Yefsa AI. How can I help you today?
+            </div>
+
         </div>
+
+        <div class="input-area">
+
+            <input
+                type="text"
+                id="userInput"
+                placeholder="Message Yefsa AI..."
+            >
+
+            <button id="sendBtn" type="button">
+                Send
+            </button>
+
+        </div>
+
     </div>
 
-    <div class="input-area">
+</main>
 
-        <input
-            type="text"
-            id="userInput"
-            placeholder="Message Yefsa AI..."
-        >
 
-        <button id="sendBtn" type="button">
-            Send
+<!-- BMY SCREEN -->
+<main id="bmyScreen" class="app-screen bmy-screen" hidden>
+
+    <header class="app-header">
+
+        <button
+            id="backHomeFromBmyBtn"
+            class="back-btn"
+            type="button">
+            ←
         </button>
 
-    </div>
-</div>
+        <h1>BMY</h1>
+
+    </header>
+
+    <section class="bmy-welcome">
+
+        <h2>Business Management by Yefsa</h2>
+
+        <p>
+            Your business management workspace is coming soon.
+        </p>
+
+    </section>
+
+</main>
+
 
 <script src="script.js"></script>
 
