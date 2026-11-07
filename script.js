@@ -333,6 +333,8 @@ async function sendMessage() {
     thinking.classList.add("thinking");
 
     try {
+console.log("Sending request to:", API_URL);
+console.log("Request message:", message);
         const response = await fetch(API_URL, {
             method: "POST",
 
@@ -348,6 +350,7 @@ async function sendMessage() {
         });
 
         const data = await response.json();
+console.log("Backend response:", data);
 
         if (!response.ok) {
             throw new Error(
