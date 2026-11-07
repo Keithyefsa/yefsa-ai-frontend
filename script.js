@@ -950,3 +950,103 @@ if ("serviceWorker" in navigator) {
 
 }
 
+// =====================================
+// YEFSATECH HOME SCREEN AND NAVIGATION
+// =====================================
+
+(function () {
+    "use strict";
+
+    const homeScreen = document.getElementById("homeScreen");
+    const chatScreen = document.getElementById("chatScreen");
+    const bmyScreen = document.getElementById("bmyScreen");
+
+    const welcomeGreeting = document.getElementById("welcomeGreeting");
+
+    const openYefsaAiBtn = document.getElementById("openYefsaAiBtn");
+    const openBmyBtn = document.getElementById("openBmyBtn");
+
+    const backHomeFromChatBtn =
+        document.getElementById("backHomeFromChatBtn");
+
+    const backHomeFromBmyBtn =
+        document.getElementById("backHomeFromBmyBtn");
+
+    // Display greeting using the phone's local time
+    function updateWelcomeGreeting() {
+        if (!welcomeGreeting) return;
+
+        const now = new Date();
+
+        if (isNaN(now.getTime())) {
+            welcomeGreeting.textContent = "Welcome";
+            return;
+        }
+
+        const hour = now.getHours();
+
+        if (hour >= 5 && hour < 12) {
+            welcomeGreeting.textContent = "Good morning!";
+        } else if (hour >= 12 && hour < 17) {
+            welcomeGreeting.textContent = "Good afternoon!";
+        } else {
+            welcomeGreeting.textContent = "Good evening!";
+        }
+    }
+
+    // Show a selected screen
+    function showScreen(screen) {
+        homeScreen.hidden = screen !== "home";
+        chatScreen.hidden = screen !== "chat";
+        bmyScreen.hidden = screen !== "bmy";
+
+        // Close open chat menus when leaving chat
+        if (screen !== "chat") {
+            const dropdownMenu =
+                document.getElementById("dropdownMenu");
+
+            const historyPanel =
+                document.getElementById("historyPanel");
+
+            if (dropdownMenu) dropdownMenu.hidden = true;
+            if (historyPanel) historyPanel.hidden = true;
+        }
+
+        window.scrollTo(0, 0);
+    }
+
+    // Open Yefsa AI
+    if (openYefsaAiBtn) {
+        openYefsaAiBtn.addEventListener("click", function () {
+            showScreen("chat");
+        });
+    }
+
+    // Open BMY
+    if (openBmyBtn) {
+        openBmyBtn.addEventListener("click", function () {
+            showScreen("bmy");
+        });
+    }
+
+    // Return from Yefsa AI to home
+    if (backHomeFromChatBtn) {
+        backHomeFromChatBtn.addEventListener("click", function () {
+            showScreen("home");
+        });
+    }
+
+    // Return from BMY to home
+    if (backHomeFromBmyBtn) {
+        backHomeFromBmyBtn.addEventListener("click", function () {
+            showScreen("home");
+        });
+    }
+
+    // Initialize the home screen
+    updateWelcomeGreeting();
+    showScreen("home");
+
+})();
+
+
