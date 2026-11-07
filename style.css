@@ -1,6 +1,6 @@
 
 /* =================================
-   YEFSATECH AI: MIDNIGHT GLOW THEME
+   YEFSATECH: MIDNIGHT GOLD THEME
 ================================= */
 
 * {
@@ -14,6 +14,7 @@
     --purple: #9b5cff;
     --blue: #438cff;
     --cyan: #40d9ff;
+    --gold: #D4AF37;
     --text: #f3f4ff;
     --muted: #9299b5;
     --border: rgba(155, 92, 255, 0.22);
@@ -31,7 +32,7 @@ body {
     overflow-x: hidden;
 }
 
-/* Subtle ambient glitter */
+/* Ambient glitter */
 
 body::before {
     content: "";
@@ -50,15 +51,118 @@ body::before {
 }
 
 @keyframes starGlow {
-    from {
-        opacity: 0.35;
-    }
-    to {
-        opacity: 0.85;
-    }
+    from { opacity: 0.35; }
+    to { opacity: 0.85; }
 }
 
-/* Header */
+/* Screen visibility */
+
+[hidden] {
+    display: none !important;
+}
+
+.app-screen {
+    min-height: 100vh;
+}
+
+/* =================================
+   YEFSATECH HOME SCREEN
+================================= */
+
+#homeScreen {
+    width: 100%;
+    max-width: 850px;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 65px 22px 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#welcomeGreeting {
+    margin: 0 0 35px;
+    color: var(--gold);
+    font-size: clamp(27px, 6vw, 38px);
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-align: center;
+    text-shadow:
+        0 0 8px rgba(212, 175, 55, 0.35),
+        0 0 22px rgba(212, 175, 55, 0.15);
+}
+
+.home-features {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+    width: 100%;
+}
+
+/* Feature cards */
+
+#openYefsaAiBtn,
+#openBmyBtn {
+    min-width: 0;
+    min-height: 125px;
+    padding: 18px 13px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    text-align: left;
+    border-radius: 17px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    transition: 0.25s ease;
+}
+
+#openYefsaAiBtn {
+    background: linear-gradient(145deg, #17294a, #10182d);
+    border-color: rgba(67, 140, 255, 0.35);
+    box-shadow: 0 8px 24px rgba(25, 75, 150, 0.13);
+}
+
+#openBmyBtn {
+    background: linear-gradient(145deg, #153b32, #10251f);
+    border-color: rgba(57, 170, 120, 0.30);
+    box-shadow: 0 8px 24px rgba(20, 110, 75, 0.12);
+}
+
+#openYefsaAiBtn:hover,
+#openBmyBtn:hover {
+    filter: brightness(1.15);
+    transform: translateY(-3px);
+}
+
+#openYefsaAiBtn strong,
+#openBmyBtn strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 20px;
+    font-weight: 800;
+    color: white;
+}
+
+#openYefsaAiBtn span,
+#openBmyBtn span {
+    display: block;
+    color: #c2c9dc;
+    font-size: 12px;
+    line-height: 1.5;
+    font-weight: normal;
+}
+
+.home-footer {
+    margin-top: 45px;
+    color: #777d96;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-align: center;
+}
+
+/* =================================
+   APP HEADERS
+================================= */
 
 header,
 .app-header {
@@ -92,7 +196,54 @@ header p {
     color: var(--muted);
 }
 
-/* Main chat layout */
+/* Back buttons */
+
+#backHomeFromChatBtn,
+#backHomeFromBmyBtn {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    padding: 9px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+/* =================================
+   BMY SCREEN
+================================= */
+
+.bmy-screen {
+    background:
+        radial-gradient(ellipse at 50% 20%, rgba(24, 105, 75, 0.13), transparent 55%),
+        transparent;
+}
+
+.bmy-screen .app-header h1 {
+    color: var(--gold);
+    text-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+}
+
+.bmy-welcome {
+    max-width: 650px;
+    margin: 70px auto;
+    padding: 25px 20px;
+    text-align: center;
+}
+
+.bmy-welcome h2 {
+    color: var(--gold);
+    font-size: 25px;
+    margin-bottom: 12px;
+}
+
+.bmy-welcome p {
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+/* =================================
+   CHAT LAYOUT
+================================= */
 
 .chat-container {
     width: 100%;
@@ -100,9 +251,6 @@ header p {
     margin: 20px auto;
     padding: 15px 18px;
 }
-
-/* Remove the visible chat-box container */
-
 
 .chat-box {
     display: flex;
@@ -127,7 +275,6 @@ header p {
     margin-left: auto;
     margin-right: 0;
 }
-
 
 /* Message bubbles */
 
@@ -154,8 +301,6 @@ header p {
     }
 }
 
-/* Yefsa AI messages */
-
 .bot {
     margin-right: auto;
     color: #e9e7ff;
@@ -169,9 +314,6 @@ header p {
     box-shadow: 0 0 18px rgba(111, 70, 220, 0.09);
 }
 
-/* User messages */
-
-
 .user {
     display: block;
     width: fit-content;
@@ -179,27 +321,20 @@ header p {
     margin-left: auto;
     margin-right: 0;
     color: white;
-    background: linear-gradient(
-        135deg,
-        #7139c7,
-        #315fd0
-    );
+    background: linear-gradient(135deg, #7139c7, #315fd0);
     border: 1px solid rgba(164, 133, 255, 0.55);
     border-bottom-right-radius: 5px;
     box-shadow: 0 0 20px rgba(102, 65, 220, 0.2);
 }
 
-
 @keyframes thinkingPulse {
-    from {
-        opacity: 0.45;
-    }
-    to {
-        opacity: 1;
-    }
+    from { opacity: 0.45; }
+    to { opacity: 1; }
 }
 
-/* Message input */
+/* =================================
+   CHAT INPUT
+================================= */
 
 .input-area {
     display: flex;
@@ -262,7 +397,9 @@ button:disabled {
     font-weight: bold;
 }
 
-/* Hamburger menu */
+/* =================================
+   HAMBURGER MENU
+================================= */
 
 .menu-container {
     position: relative;
@@ -315,7 +452,9 @@ button:disabled {
     display: none !important;
 }
 
-/* Chat history */
+/* =================================
+   CHAT HISTORY
+================================= */
 
 .history-panel {
     position: fixed;
@@ -414,9 +553,44 @@ button:disabled {
     background: #8b263c;
 }
 
-/* Mobile layout */
+/* =================================
+   MOBILE RESPONSIVENESS
+================================= */
 
 @media (max-width: 600px) {
+    #homeScreen {
+        padding: 45px 17px 22px;
+    }
+
+    #welcomeGreeting {
+        margin-bottom: 28px;
+        font-size: 29px;
+    }
+
+    .home-features {
+        gap: 10px;
+    }
+
+    #openYefsaAiBtn,
+    #openBmyBtn {
+        min-height: 115px;
+        padding: 14px 11px;
+    }
+
+    #openYefsaAiBtn strong,
+    #openBmyBtn strong {
+        font-size: 18px;
+    }
+
+    #openYefsaAiBtn span,
+    #openBmyBtn span {
+        font-size: 11px;
+    }
+
+    .home-footer {
+        margin-top: 35px;
+    }
+
     .chat-container {
         margin: 12px auto;
         padding: 10px 13px;
