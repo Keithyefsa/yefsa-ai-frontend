@@ -364,8 +364,15 @@ console.log("Backend response:", data);
         saveActiveChat();
 
     } catch (error) {
-        thinking.textContent =
-            "Sorry, I couldn't connect. Please try again.";
+    thinking.textContent = error.message;
+
+    thinking.classList.remove("thinking");
+
+    saveActiveChat();
+
+    console.error("Yefsa AI error:", error);
+
+} finally {
 
         thinking.classList.remove("thinking");
 
