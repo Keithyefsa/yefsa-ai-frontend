@@ -739,9 +739,92 @@ async function bmyRequest(path, options = {}) {
 }
 
 
+
 /* ==========================================
-   19. LOGIN FORM
+   19. LOGIN AND REGISTRATION
 ========================================== */
+
+// Switch between login and registration screens
+
+const authSwitchButton = $("authSwitchButton");
+
+const authSwitchText = $("authSwitchText");
+
+let authMode = "login";
+
+
+function bmySetAuthMode(mode) {
+
+    authMode = mode;
+
+    const isLogin = mode === "login";
+
+    $("loginForm").hidden = !isLogin;
+
+    $("registerForm").hidden = isLogin;
+
+    $("authTitle").textContent = isLogin
+        ? "Welcome back"
+        : "Create your account";
+
+    $("authDescription").textContent = isLogin
+        ? "Sign in to manage your business."
+        : "Set up your BMY business workspace.";
+
+    authSwitchText.textContent = isLogin
+        ? "New to BMY?"
+        : "Already have an account?";
+
+    authSwitchButton.textContent = isLogin
+        ? "Create an account"
+        : "Sign in";
+
+    $("authError").hidden = true;
+
+    $("registerError").hidden = true;
+}
+
+
+authSwitchButton.addEventListener("click", () => {
+
+    bmySetAuthMode(
+        authMode === "login" ? "register" : "login"
+    );
+
+});
+
+
+// Save authentication and business information
+
+function bmySaveAuthSession(response) {
+
+    if (
+        response.status !== "success" ||
+        !response.token ||
+        !Array.isArray(response.businesses)
+    ) {
+
+        throw new Error(
+            "Unexpected authentication response from server."
+        );
+    }
+
+    sessionStorage.setItem(
+        BMY_TOKEN_KEY,
+        response.token
+    );
+
+    sessionStorage.setItem(
+        BMY_BUSINESSES_KEY,
+        JSON.stringify(response.businesses)
+    );
+
+    sessionStorage.removeItem(BMY_SELECTED_KEY);
+
+}
+
+
+// LOGIN
 
 $("loginForm").addEventListener("submit", async event => {
 
@@ -773,35 +856,13 @@ $("loginForm").addEventListener("submit", async event => {
                 email,
                 password
             })
+
         });
 
 
-        if (
-            response.status !== "success" ||
-            !response.token ||
-            !Array.isArray(response.businesses)
-        ) {
-
-            throw new Error(
-                "Unexpected login response from server."
-            );
-        }
-
-
-        sessionStorage.setItem(
-            BMY_TOKEN_KEY,
-            response.token
-        );
-
-        sessionStorage.setItem(
-            BMY_BUSINESSES_KEY,
-            JSON.stringify(response.businesses)
-        );
-
-        sessionStorage.removeItem(BMY_SELECTED_KEY);
+        bmySaveAuthSession(response);
 
         $("loginPassword").value = "";
-
 
         bmyShowBusinesses(response.businesses);
 
@@ -819,8 +880,99 @@ $("loginForm").addEventListener("submit", async event => {
         button.disabled = false;
 
         button.textContent = "Sign in";
+
     }
+
 });
+
+
+// REGISTRATION
+
+$("registerForm").addEventListener("submit", async event => {
+
+    event.preventDefault();
+
+    const button = $("registerButton");
+
+    const errorBox = $("registerError");
+
+
+    const fullName = $("registerName").value.trim();
+
+    const email = $("registerEmail").value.trim();
+
+    const password = $("registerPassword").value;
+
+    const businessName = $("registerBusiness").value.trim();
+
+
+    errorBox.hidden = true;
+
+
+    if (password.length < 8) {
+
+        errorBox.textContent =
+            "Password must contain at least 8 characters.";
+
+        errorBox.hidden = false;
+
+        return;
+    }
+
+
+    button.disabled = true;
+
+    button.textContent = "Creating account...";
+
+
+    try {
+
+        const response = await bmyRequest("/bmy/auth/register", {
+
+            method: "POST",
+
+            body: JSON.stringify({
+
+                full_name: fullName,
+
+                email,
+
+                password,
+
+                business_name: businessName
+
+            })
+
+        });
+
+
+        bmySaveAuthSession(response);
+
+        $("registerPassword").value = "";
+
+        toast("Account created successfully.");
+
+        bmyShowBusinesses(response.businesses);
+
+
+    } catch (error) {
+
+        console.error("BMY registration error:", error);
+
+        errorBox.textContent = error.message;
+
+        errorBox.hidden = false;
+
+    } finally {
+
+        button.disabled = false;
+
+        button.textContent = "Create account";
+
+    }
+
+});
+
 
 
 /* ==========================================
