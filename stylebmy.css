@@ -4,3 +4,183 @@
 @media(max-width:1050px){.sidebar{width:220px}.main{margin-left:220px}.content{padding:24px}.stats{grid-template-columns:repeat(2,1fr)}.columns{grid-template-columns:1fr}.form-row{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:700px){.sidebar{transform:translateX(-100%);width:255px;box-shadow:12px 0 35px #0009}.sidebar.open{transform:none}.main{margin:0}.menu{display:block}.topbar{height:58px;padding:0 14px;gap:10px}.top-actions input{width:125px}.content{padding:22px 14px}.heading{align-items:flex-start;flex-direction:column}.heading h1{font-size:23px}.stats,.stats.three{grid-template-columns:repeat(2,1fr);gap:9px}.stats article{padding:13px}.stats article strong{font-size:18px}.form-row,.form-grid{grid-template-columns:1fr}.wide{grid-column:auto}.panel{padding:15px}.notice em{display:none}footer{padding:14px;gap:10px;flex-wrap:wrap}}
 @media print{body{background:white;color:#111}.sidebar,.topbar,footer,.heading,.panel form,.primary{display:none!important}.main{margin:0}.content{padding:0}.page{display:none!important}#page-receipts{display:block!important}.panel{background:white;border:0}.receipt{color:#111}.receipt p{color:#333}}
+
+/* =================================
+   BMY AUTHENTICATION
+================================= */
+
+[hidden] {
+  display: none !important;
+}
+
+.auth-screen {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top right, #25204b 0, transparent 38%),
+    #080b18;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 36px;
+  background: #11172b;
+  border: 1px solid #252e49;
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(0,0,0,.35);
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 42px;
+}
+
+.auth-brand > b {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #9b6bff;
+  color: white;
+  font-size: 24px;
+}
+
+.auth-brand span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.auth-brand strong {
+  font-size: 20px;
+  color: #fff;
+}
+
+.auth-brand small {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #929bb5;
+}
+
+.auth-heading {
+  margin-bottom: 28px;
+}
+
+.auth-heading h1 {
+  margin: 10px 0;
+  font-size: 30px;
+  color: #f3f5ff;
+}
+
+.auth-heading p {
+  color: #929bb5;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.auth-screen .field {
+  margin-bottom: 19px;
+}
+
+.auth-screen .field label {
+  display: block;
+  margin-bottom: 8px;
+  color: #c5cbe0;
+  font-size: 13px;
+}
+
+.auth-screen .field input {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  background: #080b18;
+  border: 1px solid #252e49;
+  border-radius: 9px;
+  color: #f3f5ff;
+  outline: none;
+}
+
+.auth-screen .field input:focus {
+  border-color: #9b6bff;
+  box-shadow: 0 0 0 3px rgba(155,107,255,.12);
+}
+
+.auth-submit {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 8px;
+}
+
+.auth-error {
+  padding: 11px;
+  margin: 12px 0;
+  border-radius: 8px;
+  background: rgba(255,75,90,.10);
+  color: #ff7c89;
+  font-size: 13px;
+}
+
+.auth-footer {
+  margin-top: 28px;
+  text-align: center;
+  color: #929bb5;
+  font-size: 11px;
+}
+
+.business-list {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.business-option {
+  width: 100%;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  background: #080b18;
+  border: 1px solid #252e49;
+  border-radius: 10px;
+  color: #f3f5ff;
+  cursor: pointer;
+}
+
+.business-option:hover {
+  border-color: #9b6bff;
+  background: #17152e;
+}
+
+.business-option strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.business-option small {
+  color: #929bb5;
+}
+
+.business-option span:last-child {
+  color: #9b6bff;
+  font-size: 20px;
+}
+
+@media(max-width:500px) {
+  .auth-card {
+    padding: 25px 20px;
+  }
+
+  .auth-heading h1 {
+    font-size: 26px;
+  }
+}
+
