@@ -13,6 +13,7 @@
 <!-- AUTHENTICATION SCREEN -->
 <div id="authScreen" class="auth-screen">
   <div class="auth-card">
+
     <div class="auth-brand">
       <b>B</b>
       <span>
@@ -27,7 +28,9 @@
       <p id="authDescription">Sign in to manage your business.</p>
     </div>
 
+    <!-- LOGIN FORM -->
     <form id="loginForm">
+
       <div class="field">
         <label>Email address</label>
         <input id="loginEmail" type="email"
@@ -45,11 +48,57 @@
       <button id="loginButton" class="primary auth-submit" type="submit">
         Sign in
       </button>
+
     </form>
+
+    <!-- REGISTRATION FORM -->
+    <form id="registerForm" hidden>
+
+      <div class="field">
+        <label>Full name</label>
+        <input id="registerName" type="text"
+          placeholder="Your full name" maxlength="255" required>
+      </div>
+
+      <div class="field">
+        <label>Email address</label>
+        <input id="registerEmail" type="email"
+          placeholder="you@example.com" maxlength="255" required>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input id="registerPassword" type="password"
+          placeholder="At least 8 characters"
+          minlength="8" maxlength="1024" required>
+      </div>
+
+      <div class="field">
+        <label>Business name</label>
+        <input id="registerBusiness" type="text"
+          placeholder="Your business name" maxlength="255" required>
+      </div>
+
+      <p id="registerError" class="auth-error" hidden></p>
+
+      <button id="registerButton" class="primary auth-submit" type="submit">
+        Create account
+      </button>
+
+    </form>
+
+    <!-- FORM SWITCH -->
+    <div class="auth-switch">
+      <span id="authSwitchText">New to BMY?</span>
+      <button id="authSwitchButton" type="button" class="link">
+        Create an account
+      </button>
+    </div>
 
     <div class="auth-footer">
       Secure business access · YEFSATECH
     </div>
+
   </div>
 </div>
 
