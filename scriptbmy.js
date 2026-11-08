@@ -200,6 +200,87 @@ async function bmySelectBusiness(business) {
     }
 }
 
+async function bmyLoadDashboard() {
+    const business = JSON.parse(
+        sessionStorage.getItem(BMY_SELECTED_KEY) || "null"
+    );
+
+    if (!business) return;
+
+    try {
+        const result = await bmyRequest(
+            `/bmy/business/${business.business_id}/dashboard`
+        );
+
+        if (result.status !== "success") {
+            throw new Error("Could not load dashboard data.");
+        }
+
+        const currency = result.business.currency || "UGX";
+
+        function money(amount) {
+            return `${currency} ${Number(amount || 0).toLocaleString()}`;
+        }
+
+        // BUSINESS TOTALS
+        document.getElementById("revenue").textContent =
+            money(result.sales.collected_revenue);
+
+        document.getElementById("expenses").textContent =
+            money(result.expenses.total_expenses);
+
+        document.getElementById("customerCount").textContent =
+            result.customers.count;
+
+        document.getElementById("productCount").textContent =
+            result.products.count;
+
+        document.getElementById("lowStockCount").textContent =
+            `${result.products.low_stock_count} items low on stock`;
+
+        // FINANCE SUMMARY
+        document.getElementById("income").textContent =
+            money(result.sales.collected_revenue);
+
+        document.getElementById("expenseTotal").textContent =
+            money(result.expenses.total_expenses);
+
+        document.getElementById("balance").textContent =
+            money(result.cash_movement_estimate);
+
+        // RECENT SALES
+        const recent = document.getElementById("recent");
+
+        if (result.recent_sales.length) {
+            recent.innerHTML = result.recent_sales.map(sale => {
+                const saleDate = new Date(sale.sale_date);
+
+                return `
+                    <tr>
+                        <td>Sale #${safe(sale.sale_id)}</td>
+                        <td>${safe(
+                            isNaN(saleDate.getTime())
+                                ? sale.sale_date
+                                : saleDate.toLocaleDateString()
+                        )}</td>
+                        <td>${safe(sale.payment_status || "Sale")}</td>
+                        <td>${safe(money(sale.total_amount))}</td>
+                    </tr>
+                `;
+            }).join("");
+        } else {
+            recent.innerHTML =
+                '<tr><td colspan="4" class="empty">No transactions yet.</td></tr>';
+        }
+
+        console.log("BMY dashboard loaded from backend.");
+
+    } catch (error) {
+        console.error("BMY dashboard error:", error);
+        toast("Could not load live dashboard data.");
+    }
+}
+
 function bmyOpenWorkspace(business) {
     bmyAuthScreen.hidden = true;
     bmyBusinessScreen.hidden = true;
