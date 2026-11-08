@@ -36,6 +36,12 @@ const developerBtn =
 const API_URL =
     "https://yefsa-ai-backend.onrender.com/chat";
 
+const MEMORY_API_URL =
+    "https://yefsa-ai-backend.onrender.com/memory";
+
+const BMY_TOKEN_KEY =
+    "bmy_auth_token";
+
 const CONVERSATIONS_KEY =
     "yefsa_ai_conversations_v1";
 
@@ -84,11 +90,42 @@ function getActiveChat() {
 }
 
 
-// 6. LONG-TERM MEMORY
+// 6. BMY ACCOUNT AUTHENTICATION
+
+function getBmyToken() {
+
+    try {
+
+        return sessionStorage.getItem(
+            BMY_TOKEN_KEY
+        );
+
+    } catch (error) {
+
+        console.error(
+            "BMY token access error:",
+            error
+        );
+
+        return null;
+
+    }
+
+}
+
+
+// 7. LONG-TERM MEMORY
+
+// Guest memories remain stored locally.
+// Authenticated memories are stored in Neon.
 
 function loadMemories() {
+
     try {
-        const saved = localStorage.getItem(MEMORY_KEY);
+
+        const saved = localStorage.getItem(
+            MEMORY_KEY
+        );
 
         const memories = saved
             ? JSON.parse(saved)
@@ -101,14 +138,23 @@ function loadMemories() {
             : [];
 
     } catch (error) {
-        console.error("Memory loading error:", error);
+
+        console.error(
+            "Memory loading error:",
+            error
+        );
+
         return [];
+
     }
+
 }
 
 
 function saveMemories(memories) {
+
     try {
+
         localStorage.setItem(
             MEMORY_KEY,
             JSON.stringify(memories)
@@ -117,13 +163,21 @@ function saveMemories(memories) {
         return true;
 
     } catch (error) {
-        console.error("Memory saving error:", error);
+
+        console.error(
+            "Memory saving error:",
+            error
+        );
+
         return false;
+
     }
+
 }
 
 
 function addMemory(memory) {
+
     const cleanMemory = memory.trim();
 
     if (!cleanMemory) return false;
@@ -140,36 +194,52 @@ function addMemory(memory) {
     memories.push(cleanMemory);
 
     return saveMemories(memories);
+
 }
 
 
-// 7. SAVE CONVERSATIONS
+// 8. SAVE CONVERSATIONS
 
 function saveConversations() {
+
     try {
+
         localStorage.setItem(
             CONVERSATIONS_KEY,
             JSON.stringify(conversations)
         );
 
         if (activeChatId) {
+
             localStorage.setItem(
                 ACTIVE_CHAT_KEY,
                 activeChatId
             );
+
         } else {
-            localStorage.removeItem(ACTIVE_CHAT_KEY);
+
+            localStorage.removeItem(
+                ACTIVE_CHAT_KEY
+            );
+
         }
 
     } catch (error) {
-        console.error("Conversation saving error:", error);
+
+        console.error(
+            "Conversation saving error:",
+            error
+        );
+
     }
+
 }
 
 
-// 8. SAVE ACTIVE CHAT
+// 9. SAVE ACTIVE CHAT
 
 function saveActiveChat() {
+
     const chat = getActiveChat();
 
     if (!chat || !chatBox) return;
@@ -181,10 +251,13 @@ function saveActiveChat() {
         !message.classList.contains("thinking")
     )
     .map(message => ({
+
         text: message.textContent,
+
         sender: message.classList.contains("user")
             ? "user"
             : "bot"
+
     }));
 
     const firstUserMessage = chat.messages.find(
@@ -192,9 +265,11 @@ function saveActiveChat() {
     );
 
     if (!chat.customTitle) {
+
         chat.title = firstUserMessage
             ? firstUserMessage.text.slice(0, 35)
             : "New Chat";
+
     }
 
     chat.updatedAt = Date.now();
@@ -204,34 +279,43 @@ function saveActiveChat() {
     );
 
     saveConversations();
+
 }
 
 
-// 9. MESSAGE STYLING
+// 10. MESSAGE STYLING
 
 function styleMessage(message, sender) {
+
     message.style.display = "block";
     message.style.width = "fit-content";
     message.style.maxWidth = "90%";
 
     if (sender === "user") {
+
         message.style.marginLeft = "auto";
         message.style.marginRight = "0";
+
     } else {
+
         message.style.marginLeft = "0";
         message.style.marginRight = "auto";
+
     }
+
 }
 
 
-// 10. ADD MESSAGE TO CHAT
+// 11. ADD MESSAGE TO CHAT
 
 function addMessage(text, sender, shouldSave = true) {
+
     if (!chatBox) return null;
 
     const message = document.createElement("div");
 
     message.classList.add("message", sender);
+
     message.textContent = String(text);
 
     styleMessage(message, sender);
@@ -245,12 +329,14 @@ function addMessage(text, sender, shouldSave = true) {
     }
 
     return message;
+
 }
 
 
-// 11. DISPLAY ACTIVE CONVERSATION
+// 12. DISPLAY ACTIVE CONVERSATION
 
 function renderActiveChat() {
+
     const chat = getActiveChat();
 
     if (!chat || !chatBox) return;
@@ -258,37 +344,48 @@ function renderActiveChat() {
     chatBox.innerHTML = "";
 
     chat.messages.forEach(item => {
+
         const sender =
             item.sender === "user" ? "user" : "bot";
 
         const message = document.createElement("div");
 
         message.classList.add("message", sender);
+
         message.textContent = String(item.text || "");
 
         styleMessage(message, sender);
 
         chatBox.appendChild(message);
+
     });
 
     chatBox.scrollTop = chatBox.scrollHeight;
+
 }
 
 
-// 12. CREATE NEW CHAT
+// 13. CREATE NEW CHAT
 
 function startNewChat() {
+
     const chat = {
+
         id: makeId(),
+
         title: "New Chat",
+
         updatedAt: Date.now(),
+
         customTitle: false,
+
         messages: [
             {
                 text: WELCOME_MESSAGE,
                 sender: "bot"
             }
         ]
+
     };
 
     conversations.unshift(chat);
@@ -296,61 +393,86 @@ function startNewChat() {
     activeChatId = chat.id;
 
     saveConversations();
+
     renderActiveChat();
 
     if (dropdownMenu) {
         dropdownMenu.hidden = true;
     }
+
 }
 
 
-// 13. LOAD PREVIOUS CONVERSATIONS
+// 14. LOAD PREVIOUS CONVERSATIONS
 
 function loadConversations() {
+
     try {
+
         const saved = localStorage.getItem(
             CONVERSATIONS_KEY
         );
 
         if (saved) {
+
             const parsed = JSON.parse(saved);
 
             if (Array.isArray(parsed)) {
+
                 conversations = parsed.filter(
                     chat =>
                         chat &&
                         typeof chat.id === "string" &&
                         Array.isArray(chat.messages)
                 );
+
             }
+
         }
 
         // Migrate older saved conversation
 
         if (conversations.length === 0) {
-            const legacy = localStorage.getItem(LEGACY_KEY);
+
+            const legacy = localStorage.getItem(
+                LEGACY_KEY
+            );
 
             if (legacy) {
+
                 const oldMessages = JSON.parse(legacy);
 
                 if (
                     Array.isArray(oldMessages) &&
                     oldMessages.length > 0
                 ) {
+
                     conversations.push({
+
                         id: makeId(),
+
                         title: "Previous Chat",
+
                         updatedAt: Date.now(),
+
                         messages: oldMessages,
+
                         customTitle: false
+
                     });
+
                 }
+
             }
+
         }
 
         if (conversations.length === 0) {
+
             startNewChat();
+
             return;
+
         }
 
         activeChatId = localStorage.getItem(
@@ -358,30 +480,135 @@ function loadConversations() {
         );
 
         if (!getActiveChat()) {
+
             activeChatId = conversations[0].id;
+
         }
 
         renderActiveChat();
+
         saveConversations();
 
     } catch (error) {
-        console.error("Chat loading error:", error);
+
+        console.error(
+            "Chat loading error:",
+            error
+        );
 
         conversations = [];
+
         activeChatId = null;
 
         startNewChat();
+
     }
+
 }
 
 
-// 14. SEND MESSAGE TO YEFSA AI
+// 15. SAVE MEMORY TO THE CORRECT STORAGE
+
+async function rememberInformation(memory) {
+
+    const cleanMemory = memory.trim();
+
+    if (!cleanMemory) {
+
+        throw new Error(
+            "Memory cannot be empty."
+        );
+
+    }
+
+    const token = getBmyToken();
+
+    // Authenticated BMY account:
+    // Save memory to the backend and Neon.
+
+    if (token) {
+
+        const response = await fetch(
+            MEMORY_API_URL,
+            {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type": "application/json",
+
+                    "Authorization": "Bearer " + token
+
+                },
+
+                body: JSON.stringify({
+
+                    memory: cleanMemory
+
+                })
+
+            }
+        );
+
+        const responseText = await response.text();
+
+        let data;
+
+        try {
+
+            data = JSON.parse(responseText);
+
+        } catch (error) {
+
+            throw new Error(
+                "The memory server returned an invalid response."
+            );
+
+        }
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error || "Memory saving failed."
+            );
+
+        }
+
+        return "account";
+
+    }
+
+    // Guest account:
+    // Save memory only on this device.
+
+    const saved = addMemory(cleanMemory);
+
+    if (!saved) {
+
+        throw new Error(
+            "Memory could not be saved on this device."
+        );
+
+    }
+
+    return "device";
+
+}
+
+
+// 16. SEND MESSAGE TO YEFSA AI
 
 async function sendMessage() {
 
     if (!chatBox || !userInput || !sendBtn) {
-        console.error("Chat interface is unavailable.");
+
+        console.error(
+            "Chat interface is unavailable."
+        );
+
         return;
+
     }
 
     const message = userInput.value.trim();
@@ -401,18 +628,55 @@ async function sendMessage() {
 
         addMessage(message, "user");
 
-        const saved = addMemory(memory);
-
-        addMessage(
-            saved
-                ? "I've saved that memory on this device."
-                : "I couldn't save that memory. Please try again.",
-            "bot"
-        );
-
         userInput.value = "";
 
+        sendBtn.disabled = true;
+
+        try {
+
+            const storageType = await rememberInformation(
+                memory
+            );
+
+            if (storageType === "account") {
+
+                addMessage(
+                    "I've saved that memory to your account.",
+                    "bot"
+                );
+
+            } else {
+
+                addMessage(
+                    "I've saved that memory on this device.",
+                    "bot"
+                );
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Memory saving error:",
+                error
+            );
+
+            addMessage(
+                "I couldn't save that memory: " +
+                error.message,
+                "bot"
+            );
+
+        } finally {
+
+            sendBtn.disabled = false;
+
+            userInput.focus();
+
+        }
+
         return;
+
     }
 
 
@@ -421,22 +685,30 @@ async function sendMessage() {
     const activeChat = getActiveChat();
 
     const history = activeChat
+
         ? activeChat.messages
+
             .filter(item =>
                 item.sender === "user" ||
                 item.sender === "bot"
             )
+
             .filter(item =>
                 item.text !== WELCOME_MESSAGE
             )
+
             .slice(-20)
+
             .map(item => ({
+
                 role: item.sender === "user"
                     ? "user"
                     : "model",
 
                 text: item.text
+
             }))
+
         : [];
 
 
@@ -462,30 +734,65 @@ async function sendMessage() {
 
     try {
 
-        console.log("Sending request to:", API_URL);
+        console.log(
+            "Sending request to:",
+            API_URL
+        );
+
+
+        // Get current BMY authentication token
+
+        const token = getBmyToken();
+
+
+        // Prepare request headers
+
+        const headers = {
+
+            "Content-Type": "application/json"
+
+        };
+
+        if (token) {
+
+            headers["Authorization"] =
+                "Bearer " + token;
+
+        }
+
+
+        // Prepare request body
+
+        const requestBody = {
+
+            message: message,
+
+            history: history,
+
+            // Authenticated users get memories from Neon.
+            // Guests continue using local browser memories.
+
+            memories: token
+                ? []
+                : loadMemories()
+
+        };
 
 
         // Send request to Flask backend
 
-        const response = await fetch(API_URL, {
+        const response = await fetch(
+            API_URL,
+            {
 
-            method: "POST",
+                method: "POST",
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+                headers: headers,
 
-            body: JSON.stringify({
+                body: JSON.stringify(requestBody)
 
-                message: message,
-
-                history: history,
-
-                memories: loadMemories()
-
-            })
-
-        });
+            }
+        );
 
 
         // Read backend response safely
@@ -495,26 +802,34 @@ async function sendMessage() {
         let data;
 
         try {
+
             data = JSON.parse(responseText);
 
         } catch (parseError) {
+
             throw new Error(
                 "The server returned an invalid response. HTTP " +
                 response.status
             );
+
         }
 
 
-        console.log("Backend response:", data);
+        console.log(
+            "Backend response:",
+            data
+        );
 
 
         // Check for backend errors
 
         if (!response.ok) {
+
             throw new Error(
                 data.error ||
                 "Server error. HTTP " + response.status
             );
+
         }
 
 
@@ -525,9 +840,11 @@ async function sendMessage() {
             typeof data.reply !== "string" ||
             !data.reply.trim()
         ) {
+
             throw new Error(
                 "The server responded but did not provide an AI reply."
             );
+
         }
 
 
@@ -544,7 +861,10 @@ async function sendMessage() {
 
     } catch (error) {
 
-        console.error("Yefsa AI error:", error);
+        console.error(
+            "Yefsa AI error:",
+            error
+        );
 
         thinking.textContent =
             "Connection error: " + error.message;
@@ -567,88 +887,102 @@ async function sendMessage() {
 }
 
 
-// 15. OPEN AND CLOSE MENU
+// 17. OPEN AND CLOSE MENU
 
 if (menuBtn && dropdownMenu) {
 
-    menuBtn.addEventListener("click", function(event) {
+    menuBtn.addEventListener(
+        "click",
+        function(event) {
 
-        event.stopPropagation();
+            event.stopPropagation();
 
-        dropdownMenu.hidden = !dropdownMenu.hidden;
+            dropdownMenu.hidden = !dropdownMenu.hidden;
 
-    });
+        }
+    );
 
 
     // Close menu when tapping outside
 
-    document.addEventListener("click", function(event) {
+    document.addEventListener(
+        "click",
+        function(event) {
 
-        if (
-            !menuBtn.contains(event.target) &&
-            !dropdownMenu.contains(event.target)
-        ) {
-            dropdownMenu.hidden = true;
+            if (
+                !menuBtn.contains(event.target) &&
+                !dropdownMenu.contains(event.target)
+            ) {
+
+                dropdownMenu.hidden = true;
+
+            }
+
         }
-
-    });
+    );
 
 }
 
 
-// 16. NEW CHAT BUTTON
+// 18. NEW CHAT BUTTON
 
 if (newChatBtn) {
 
-    newChatBtn.addEventListener("click", function() {
-
-        startNewChat();
-
-    });
-
-}
-
-
-// 17. DELETE CURRENT CHAT
-
-if (deleteChatBtn) {
-
-    deleteChatBtn.addEventListener("click", function() {
-
-        if (dropdownMenu) {
-            dropdownMenu.hidden = true;
-        }
-
-        const confirmed = confirm(
-            "Delete this conversation?"
-        );
-
-        if (!confirmed) return;
-
-        conversations = conversations.filter(
-            chat => chat.id !== activeChatId
-        );
-
-        if (conversations.length === 0) {
+    newChatBtn.addEventListener(
+        "click",
+        function() {
 
             startNewChat();
 
-        } else {
-
-            activeChatId = conversations[0].id;
-
-            saveConversations();
-
-            renderActiveChat();
-
         }
-
-    });
+    );
 
 }
 
 
-// 18. DISPLAY CHAT HISTORY
+// 19. DELETE CURRENT CHAT
+
+if (deleteChatBtn) {
+
+    deleteChatBtn.addEventListener(
+        "click",
+        function() {
+
+            if (dropdownMenu) {
+                dropdownMenu.hidden = true;
+            }
+
+            const confirmed = confirm(
+                "Delete this conversation?"
+            );
+
+            if (!confirmed) return;
+
+            conversations = conversations.filter(
+                chat => chat.id !== activeChatId
+            );
+
+            if (conversations.length === 0) {
+
+                startNewChat();
+
+            } else {
+
+                activeChatId = conversations[0].id;
+
+                saveConversations();
+
+                renderActiveChat();
+
+            }
+
+        }
+    );
+
+}
+
+
+// 20. DISPLAY CHAT HISTORY
 
 function renderHistory() {
 
@@ -662,6 +996,7 @@ function renderHistory() {
             "No conversations yet.";
 
         return;
+
     }
 
 
@@ -698,19 +1033,22 @@ function renderHistory() {
         item.appendChild(date);
 
 
-        item.addEventListener("click", function() {
+        item.addEventListener(
+            "click",
+            function() {
 
-            activeChatId = chat.id;
+                activeChatId = chat.id;
 
-            saveConversations();
+                saveConversations();
 
-            renderActiveChat();
+                renderActiveChat();
 
-            if (historyPanel) {
-                historyPanel.hidden = true;
+                if (historyPanel) {
+                    historyPanel.hidden = true;
+                }
+
             }
-
-        });
+        );
 
 
         // Rename conversation
@@ -724,28 +1062,31 @@ function renderHistory() {
         renameBtn.textContent = "✏️";
 
 
-        renameBtn.addEventListener("click", function(event) {
+        renameBtn.addEventListener(
+            "click",
+            function(event) {
 
-            event.stopPropagation();
+                event.stopPropagation();
 
-            const newTitle = prompt(
-                "Enter a new conversation name:",
-                chat.title
-            );
+                const newTitle = prompt(
+                    "Enter a new conversation name:",
+                    chat.title
+                );
 
-            if (!newTitle || !newTitle.trim()) return;
+                if (!newTitle || !newTitle.trim()) return;
 
-            chat.title = newTitle.trim();
+                chat.title = newTitle.trim();
 
-            chat.customTitle = true;
+                chat.customTitle = true;
 
-            chat.updatedAt = Date.now();
+                chat.updatedAt = Date.now();
 
-            saveConversations();
+                saveConversations();
 
-            renderHistory();
+                renderHistory();
 
-        });
+            }
+        );
 
 
         // Delete conversation from history
@@ -759,45 +1100,48 @@ function renderHistory() {
         deleteBtn.textContent = "🗑️";
 
 
-        deleteBtn.addEventListener("click", function(event) {
+        deleteBtn.addEventListener(
+            "click",
+            function(event) {
 
-            event.stopPropagation();
+                event.stopPropagation();
 
-            const confirmed = confirm(
-                "Permanently delete '" +
-                chat.title +
-                "'?"
-            );
+                const confirmed = confirm(
+                    "Permanently delete '" +
+                    chat.title +
+                    "'?"
+                );
 
-            if (!confirmed) return;
+                if (!confirmed) return;
 
-            conversations = conversations.filter(
-                item => item.id !== chat.id
-            );
+                conversations = conversations.filter(
+                    item => item.id !== chat.id
+                );
 
-            if (activeChatId === chat.id) {
+                if (activeChatId === chat.id) {
 
-                activeChatId = conversations.length > 0
-                    ? conversations[0].id
-                    : null;
+                    activeChatId = conversations.length > 0
+                        ? conversations[0].id
+                        : null;
+
+                }
+
+                if (!activeChatId) {
+
+                    startNewChat();
+
+                } else {
+
+                    saveConversations();
+
+                    renderActiveChat();
+
+                }
+
+                renderHistory();
 
             }
-
-            if (!activeChatId) {
-
-                startNewChat();
-
-            } else {
-
-                saveConversations();
-
-                renderActiveChat();
-
-            }
-
-            renderHistory();
-
-        });
+        );
 
 
         row.appendChild(item);
@@ -813,158 +1157,192 @@ function renderHistory() {
 }
 
 
-// 19. OPEN CHAT HISTORY
+// 21. OPEN CHAT HISTORY
 
 if (historyBtn) {
 
-    historyBtn.addEventListener("click", function() {
+    historyBtn.addEventListener(
+        "click",
+        function() {
 
-        if (dropdownMenu) {
-            dropdownMenu.hidden = true;
+            if (dropdownMenu) {
+                dropdownMenu.hidden = true;
+            }
+
+            renderHistory();
+
+            if (historyPanel) {
+                historyPanel.hidden = false;
+            }
+
         }
-
-        renderHistory();
-
-        if (historyPanel) {
-            historyPanel.hidden = false;
-        }
-
-    });
+    );
 
 }
 
 
-// 20. CLOSE CHAT HISTORY
+// 22. CLOSE CHAT HISTORY
 
 if (closeHistoryBtn && historyPanel) {
 
-    closeHistoryBtn.addEventListener("click", function() {
+    closeHistoryBtn.addEventListener(
+        "click",
+        function() {
 
-        historyPanel.hidden = true;
+            historyPanel.hidden = true;
 
-    });
+        }
+    );
 
 }
 
 
-// 21. SUBSCRIBE OPTION
+// 23. SUBSCRIBE OPTION
 
 if (subscribeBtn) {
 
-    subscribeBtn.addEventListener("click", function() {
+    subscribeBtn.addEventListener(
+        "click",
+        function() {
 
-        if (dropdownMenu) {
-            dropdownMenu.hidden = true;
+            if (dropdownMenu) {
+                dropdownMenu.hidden = true;
+            }
+
+            alert(
+                "Yefsa AI subscriptions are under development. Stay tuned!"
+            );
+
         }
-
-        alert(
-            "Yefsa AI subscriptions are under development. Stay tuned!"
-        );
-
-    });
+    );
 
 }
 
 
-// 22. CHAT WITH DEVELOPER OPTION
+// 24. CHAT WITH DEVELOPER OPTION
 
 if (developerBtn) {
 
-    developerBtn.addEventListener("click", function() {
+    developerBtn.addEventListener(
+        "click",
+        function() {
 
-        if (dropdownMenu) {
-            dropdownMenu.hidden = true;
+            if (dropdownMenu) {
+                dropdownMenu.hidden = true;
+            }
+
+            alert(
+                "Welcome! You're connecting with the YefsaTech developer. This feature is under development."
+            );
+
         }
-
-        alert(
-            "Welcome! You're connecting with the YefsaTech developer. This feature is under development."
-        );
-
-    });
+    );
 
 }
 
 
-// 23. SEND BUTTON
+// 25. SEND BUTTON
 
 if (sendBtn) {
 
-    sendBtn.addEventListener("click", sendMessage);
+    sendBtn.addEventListener(
+        "click",
+        sendMessage
+    );
 
 }
 
 
-// 24. ENTER KEY
+// 26. ENTER KEY
 
 if (userInput) {
 
-    userInput.addEventListener("keydown", function(event) {
+    userInput.addEventListener(
+        "keydown",
+        function(event) {
 
-        if (
-            event.key === "Enter" &&
-            !event.shiftKey
-        ) {
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
 
-            event.preventDefault();
+                event.preventDefault();
 
-            sendMessage();
+                sendMessage();
+
+            }
 
         }
-
-    });
+    );
 
 }
 
 
-// 25. START APPLICATION
+// 27. START APPLICATION
 
 loadConversations();
 
 
-// 26. REGISTER SERVICE WORKER
+// 28. REGISTER SERVICE WORKER
 
 if ("serviceWorker" in navigator) {
 
-    window.addEventListener("load", function() {
+    window.addEventListener(
+        "load",
+        function() {
 
-        navigator.serviceWorker.register(
-            "./service-worker.js"
-        )
+            navigator.serviceWorker.register(
+                "./service-worker.js"
+            )
 
-        .then(function() {
+            .then(function() {
 
-            console.log("YefsaTech is ready!");
+                console.log(
+                    "YefsaTech is ready!"
+                );
 
-        })
+            })
 
-        .catch(function(error) {
+            .catch(function(error) {
 
-            console.error(
-                "Service worker error:",
-                error
-            );
+                console.error(
+                    "Service worker error:",
+                    error
+                );
 
-        });
+            });
 
-    });
+        }
+    );
 
 }
+
 
 // =====================================
 // YEFSATECH HOME SCREEN AND NAVIGATION
 // =====================================
 
 (function () {
+
     "use strict";
 
-    const homeScreen = document.getElementById("homeScreen");
-    const chatScreen = document.getElementById("chatScreen");
-    const bmyScreen = document.getElementById("bmyScreen");
+    const homeScreen =
+        document.getElementById("homeScreen");
 
-    const welcomeGreeting = document.getElementById("welcomeGreeting");
+    const chatScreen =
+        document.getElementById("chatScreen");
 
-    const openYefsaAiBtn = document.getElementById("openYefsaAiBtn");
-    const openBmyBtn = document.getElementById("openBmyBtn");
+    const bmyScreen =
+        document.getElementById("bmyScreen");
+
+    const welcomeGreeting =
+        document.getElementById("welcomeGreeting");
+
+    const openYefsaAiBtn =
+        document.getElementById("openYefsaAiBtn");
+
+    const openBmyBtn =
+        document.getElementById("openBmyBtn");
 
     const backHomeFromChatBtn =
         document.getElementById("backHomeFromChatBtn");
@@ -972,83 +1350,156 @@ if ("serviceWorker" in navigator) {
     const backHomeFromBmyBtn =
         document.getElementById("backHomeFromBmyBtn");
 
+
     // Display greeting using the phone's local time
+
     function updateWelcomeGreeting() {
+
         if (!welcomeGreeting) return;
 
         const now = new Date();
 
         if (isNaN(now.getTime())) {
+
             welcomeGreeting.textContent = "Welcome";
+
             return;
+
         }
 
         const hour = now.getHours();
 
         if (hour >= 5 && hour < 12) {
-            welcomeGreeting.textContent = "Good morning!";
+
+            welcomeGreeting.textContent =
+                "Good morning!";
+
         } else if (hour >= 12 && hour < 17) {
-            welcomeGreeting.textContent = "Good afternoon!";
+
+            welcomeGreeting.textContent =
+                "Good afternoon!";
+
         } else {
-            welcomeGreeting.textContent = "Good evening!";
+
+            welcomeGreeting.textContent =
+                "Good evening!";
+
         }
+
     }
 
+
     // Show a selected screen
+
     function showScreen(screen) {
-        homeScreen.hidden = screen !== "home";
-        chatScreen.hidden = screen !== "chat";
-        bmyScreen.hidden = screen !== "bmy";
+
+        if (homeScreen) {
+            homeScreen.hidden = screen !== "home";
+        }
+
+        if (chatScreen) {
+            chatScreen.hidden = screen !== "chat";
+        }
+
+        if (bmyScreen) {
+            bmyScreen.hidden = screen !== "bmy";
+        }
+
 
         // Close open chat menus when leaving chat
+
         if (screen !== "chat") {
+
             const dropdownMenu =
                 document.getElementById("dropdownMenu");
 
             const historyPanel =
                 document.getElementById("historyPanel");
 
-            if (dropdownMenu) dropdownMenu.hidden = true;
-            if (historyPanel) historyPanel.hidden = true;
+            if (dropdownMenu) {
+                dropdownMenu.hidden = true;
+            }
+
+            if (historyPanel) {
+                historyPanel.hidden = true;
+            }
+
         }
 
         window.scrollTo(0, 0);
+
     }
+
 
     // Open Yefsa AI
+
     if (openYefsaAiBtn) {
-        openYefsaAiBtn.addEventListener("click", function () {
-            showScreen("chat");
-        });
+
+        openYefsaAiBtn.addEventListener(
+            "click",
+            function() {
+
+                showScreen("chat");
+
+            }
+        );
+
     }
 
-    
-// Open BMY application
-if (openBmyBtn) {
-    openBmyBtn.addEventListener("click", function () {
-        window.location.href =
-            "https://keithyefsa.github.io/yefsa-ai-frontend/indexbmy.html";
-    });
-}
+
+    // Open BMY application
+
+    if (openBmyBtn) {
+
+        openBmyBtn.addEventListener(
+            "click",
+            function() {
+
+                window.location.href =
+                    "https://keithyefsa.github.io/yefsa-ai-frontend/indexbmy.html";
+
+            }
+        );
+
+    }
+
 
     // Return from Yefsa AI to home
+
     if (backHomeFromChatBtn) {
-        backHomeFromChatBtn.addEventListener("click", function () {
-            showScreen("home");
-        });
+
+        backHomeFromChatBtn.addEventListener(
+            "click",
+            function() {
+
+                showScreen("home");
+
+            }
+        );
+
     }
+
 
     // Return from BMY to home
+
     if (backHomeFromBmyBtn) {
-        backHomeFromBmyBtn.addEventListener("click", function () {
-            showScreen("home");
-        });
+
+        backHomeFromBmyBtn.addEventListener(
+            "click",
+            function() {
+
+                showScreen("home");
+
+            }
+        );
+
     }
 
+
     // Initialize the home screen
+
     updateWelcomeGreeting();
+
     showScreen("home");
 
 })();
-
-
