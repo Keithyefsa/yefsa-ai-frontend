@@ -23,7 +23,12 @@ function exportBackup(){let blob=new Blob([JSON.stringify({exportedAt:new Date()
 document.getElementById("export").onclick=exportBackup;document.getElementById("backup").onclick=exportBackup;
 document.getElementById("search").onkeydown=e=>{if(e.key!=="Enter")return;let q=e.target.value.toLowerCase().trim();if(!q)return;if(data.customers.some(x=>(x.name+x.phone+x.email).toLowerCase().includes(q)))go("customers");else if(data.employees.some(x=>(x.name+x.role+x.phone).toLowerCase().includes(q)))go("hr");else if(data.sales.some(x=>(x.description+x.customer).toLowerCase().includes(q)))go("sales");else toast("No matching saved record found.")};
 function render(){let income=data.sales.reduce((s,x)=>s+x.amount,0),cost=data.expenses.reduce((s,x)=>s+x.amount,0);
-revenue.textContent=fmt(income);expenses.textContent=fmt(cost);customerCount.textContent=data.customers.length;employeeCount.textContent=data.employees.length;income.textContent=fmt(income);expenseTotal.textContent=fmt(cost);balance.textContent=fmt(income-cost);
+revenue.textContent=fmt(income);
+expenses.textContent=fmt(cost);
+customerCount.textContent=data.customers.length;
+income.textContent=fmt(income);
+expenseTotal.textContent=fmt(cost);
+balance.textContent=fmt(income-cost);
 customerTotal.textContent=data.customers.length+" records";customers.innerHTML=data.customers.length?data.customers.map(x=>`<tr><td>${safe(x.name)}</td><td>${safe(x.phone||"—")}</td><td>${safe(x.email||"—")}</td><td>${safe(x.date)}</td><td><button class="delete" data-remove="customers" data-id="${x.id}">Remove</button></td></tr>`).join(""):'<tr><td colspan="5" class="empty">No customers saved yet.</td></tr>';
 employeeTotal.textContent=data.employees.length+" records";employees.innerHTML=data.employees.length?data.employees.map(x=>`<tr><td>${safe(x.name)}</td><td>${safe(x.role)}</td><td>${safe(x.phone||"—")}</td><td>${safe(x.date)}</td><td><button class="delete" data-remove="employees" data-id="${x.id}">Remove</button></td></tr>`).join(""):'<tr><td colspan="5" class="empty">No employees saved yet.</td></tr>';
 saleTotal.textContent=data.sales.length+" records";sales.innerHTML=data.sales.length?data.sales.map(x=>`<tr><td>${safe(x.description)}</td><td>${safe(x.customer)}</td><td>${safe(x.date)}</td><td>${safe(x.method)}</td><td>${safe(fmt(x.amount))}</td></tr>`).join(""):'<tr><td colspan="5" class="empty">No sales recorded yet.</td></tr>';
