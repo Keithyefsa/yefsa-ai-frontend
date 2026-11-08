@@ -302,6 +302,7 @@ function bmyOpenWorkspace(business) {
     if (logoutButton) logoutButton.hidden = false;
 
     go("dashboard");
+   bmyLoadDashboard();
 }
 
 function bmyLogout() {
