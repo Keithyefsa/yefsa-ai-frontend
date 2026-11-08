@@ -799,15 +799,17 @@ authSwitchButton.addEventListener("click", () => {
 function bmySaveAuthSession(response) {
 
     if (
-        response.status !== "success" ||
-        !response.token ||
-        !Array.isArray(response.businesses)
-    ) {
+    response.status !== "success" ||
+    !response.token ||
+    !Array.isArray(response.businesses)
+) {
+    console.error("Unexpected BMY authentication response:", response);
 
-        throw new Error(
-            "Unexpected authentication response from server."
-        );
-    }
+    throw new Error(
+        "Authentication response mismatch. Received fields: " +
+        Object.keys(response || {}).join(", ")
+    );
+}
 
     sessionStorage.setItem(
         BMY_TOKEN_KEY,
