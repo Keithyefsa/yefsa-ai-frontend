@@ -32,3 +32,260 @@ recent.innerHTML=activity.length?activity.slice(0,5).map(x=>`<tr><td>${safe(x.de
 financeRows.innerHTML=activity.length?activity.map(x=>`<tr><td>${safe(x.description)}</td><td>${safe(x.date)}</td><td>${x.type}</td><td>${safe(fmt(x.amount))}</td></tr>`).join(""):'<tr><td colspan="4" class="empty">No finance activity yet.</td></tr>';
 businessName.value=data.settings.name;businessEmail.value=data.settings.email;businessPhone.value=data.settings.phone;currency.value=data.settings.currency}
 document.getElementById("year").textContent=new Date().getFullYear();render();
+
+/* ==========================================
+   BMY AUTHENTICATION & BUSINESS ACCESS
+========================================== */
+
+const BMY_API = "https://yefsa-ai-backend.onrender.com";
+
+const bmyAuthScreen = document.getElementById("authScreen");
+const bmyBusinessScreen = document.getElementById("businessScreen");
+const bmySidebar = document.getElementById("sidebar");
+const bmyMain = document.querySelector("main");
+
+const BMY_TOKEN_KEY = "bmy_auth_token";
+const BMY_BUSINESSES_KEY = "bmy_businesses";
+const BMY_SELECTED_KEY = "bmy_selected_business";
+
+function bmyShowLogin() {
+    bmyAuthScreen.hidden = false;
+    bmyBusinessScreen.hidden = true;
+    bmySidebar.hidden = true;
+    bmyMain.hidden = true;
+}
+
+function bmyShowBusinesses(businesses) {
+    bmyAuthScreen.hidden = true;
+    bmyBusinessScreen.hidden = false;
+    bmySidebar.hidden = true;
+    bmyMain.hidden = true;
+
+    const list = document.getElementById("businessList");
+
+    if (!businesses.length) {
+        list.innerHTML = "<p>No active businesses found.</p>";
+        return;
+    }
+
+    list.innerHTML = businesses.map((business, index) => `
+        <button class="business-option"
+            type="button"
+            data-business-index="${index}">
+            <span>
+                <strong>${safe(business.business_name)}</strong>
+                <small>${safe(business.business_type || "Business")} · ${safe(business.role || "Member")}</small>
+            </span>
+            <span>›</span>
+        </button>
+    `).join("");
+
+    list.querySelectorAll("[data-business-index]").forEach(button => {
+        button.addEventListener("click", () => {
+            const business = businesses[Number(button.dataset.businessIndex)];
+            bmySelectBusiness(business);
+        });
+    });
+}
+
+async function bmyRequest(path, options = {}) {
+    const token = sessionStorage.getItem(BMY_TOKEN_KEY);
+
+    const response = await fetch(BMY_API + path, {
+        ...options,
+        headers: {
+            "Content-Type": "application/json",
+            ...(token ? {
+                "Authorization": "Bearer " + token
+            } : {}),
+            ...(options.headers || {})
+        }
+    });
+
+    let result;
+
+    try {
+        result = await response.json();
+    } catch {
+        throw new Error("The server returned an invalid response.");
+    }
+
+    if (!response.ok) {
+        const error = new Error(
+            result.error || "Request could not be completed."
+        );
+        error.status = response.status;
+        throw error;
+    }
+
+    return result;
+}
+
+document.getElementById("loginForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const button = document.getElementById("loginButton");
+    const errorBox = document.getElementById("authError");
+
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+
+    errorBox.hidden = true;
+    button.disabled = true;
+    button.textContent = "Signing in...";
+
+    try {
+        const response = await bmyRequest("/bmy/auth/login", {
+            method: "POST",
+            body: JSON.stringify({ email, password })
+        });
+
+        if (
+            response.status !== "success" ||
+            !response.token ||
+            !Array.isArray(response.businesses)
+        ) {
+            throw new Error("Unexpected login response from server.");
+        }
+
+        sessionStorage.setItem(BMY_TOKEN_KEY, response.token);
+        sessionStorage.setItem(
+            BMY_BUSINESSES_KEY,
+            JSON.stringify(response.businesses)
+        );
+
+        sessionStorage.removeItem(BMY_SELECTED_KEY);
+
+        document.getElementById("loginPassword").value = "";
+
+        bmyShowBusinesses(response.businesses);
+
+    } catch (error) {
+        errorBox.textContent = error.message;
+        errorBox.hidden = false;
+    } finally {
+        button.disabled = false;
+        button.textContent = "Sign in";
+    }
+});
+
+async function bmySelectBusiness(business) {
+    const list = document.getElementById("businessList");
+
+    list.querySelectorAll("button").forEach(button => {
+        button.disabled = true;
+    });
+
+    try {
+        await bmyRequest(
+            `/bmy/business/${business.business_id}/access`
+        );
+
+        sessionStorage.setItem(
+            BMY_SELECTED_KEY,
+            JSON.stringify(business)
+        );
+
+        bmyOpenWorkspace(business);
+
+    } catch (error) {
+        if (error.status === 401 || error.status === 403) {
+            bmyLogout();
+        } else {
+            toast(error.message);
+            bmyShowBusinesses(
+                JSON.parse(sessionStorage.getItem(BMY_BUSINESSES_KEY) || "[]")
+            );
+        }
+    }
+}
+
+function bmyOpenWorkspace(business) {
+    bmyAuthScreen.hidden = true;
+    bmyBusinessScreen.hidden = true;
+    bmySidebar.hidden = false;
+    bmyMain.hidden = false;
+
+    const workspace = document.querySelector(".workspace");
+
+    if (workspace) {
+        workspace.querySelector("strong").textContent =
+            business.business_name;
+
+        workspace.querySelector("small").textContent =
+            business.business_type || "Business account";
+    }
+
+    const logoutButton = document.getElementById("bmyLogout");
+
+    if (logoutButton) logoutButton.hidden = false;
+
+    go("dashboard");
+}
+
+function bmyLogout() {
+    sessionStorage.removeItem(BMY_TOKEN_KEY);
+    sessionStorage.removeItem(BMY_BUSINESSES_KEY);
+    sessionStorage.removeItem(BMY_SELECTED_KEY);
+
+    document.getElementById("loginPassword").value = "";
+
+    bmyShowLogin();
+}
+
+const bmyLogoutButton = document.createElement("button");
+
+bmyLogoutButton.id = "bmyLogout";
+bmyLogoutButton.className = "nav";
+bmyLogoutButton.type = "button";
+bmyLogoutButton.textContent = "↪ Sign out";
+bmyLogoutButton.addEventListener("click", bmyLogout);
+
+document.querySelector(".side-bottom").appendChild(bmyLogoutButton);
+
+async function bmyRestoreSession() {
+    const token = sessionStorage.getItem(BMY_TOKEN_KEY);
+
+    if (!token) {
+        bmyShowLogin();
+        return;
+    }
+
+    const selected = sessionStorage.getItem(BMY_SELECTED_KEY);
+
+    if (selected) {
+        try {
+            const business = JSON.parse(selected);
+
+            await bmyRequest(
+                `/bmy/business/${business.business_id}/access`
+            );
+
+            bmyOpenWorkspace(business);
+            return;
+
+        } catch (error) {
+            if (error.status === 401 || error.status === 403) {
+                bmyLogout();
+                return;
+            }
+
+            toast("Could not verify your session. Please try again.");
+            bmyShowLogin();
+            return;
+        }
+    }
+
+    const businesses = JSON.parse(
+        sessionStorage.getItem(BMY_BUSINESSES_KEY) || "[]"
+    );
+
+    if (businesses.length) {
+        bmyShowBusinesses(businesses);
+    } else {
+        bmyLogout();
+    }
+}
+
+bmyRestoreSession();
+
