@@ -1022,12 +1022,14 @@ if ("serviceWorker" in navigator) {
         });
     }
 
-    // Open BMY
-    if (openBmyBtn) {
-        openBmyBtn.addEventListener("click", function () {
-            showScreen("bmy");
-        });
-    }
+    
+// Open BMY application
+if (openBmyBtn) {
+    openBmyBtn.addEventListener("click", function () {
+        window.location.href =
+            "https://keithyefsa.github.io/yefsa-ai-frontend/indexbmy.html";
+    });
+}
 
     // Return from Yefsa AI to home
     if (backHomeFromChatBtn) {
