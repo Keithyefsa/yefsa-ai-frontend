@@ -651,3 +651,77 @@ button:disabled {
         gap: 12px;
     }
 }
+
+/* ==========================================
+   YEFSATECH MARKDOWN FORMATTING
+========================================== */
+
+.message p {
+    margin: 6px 0;
+    line-height: 1.65;
+}
+
+.message strong {
+    font-weight: 800;
+}
+
+.message em {
+    font-style: italic;
+}
+
+.message h1,
+.message h2,
+.message h3 {
+    margin: 12px 0 8px;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.message h1 {
+    font-size: 1.35rem;
+}
+
+.message h2 {
+    font-size: 1.2rem;
+}
+
+.message h3 {
+    font-size: 1.08rem;
+}
+
+.message ul,
+.message ol {
+    padding-left: 24px;
+    margin: 8px 0;
+}
+
+.message li {
+    margin: 5px 0;
+    line-height: 1.5;
+}
+
+.message code {
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: rgba(128, 128, 128, 0.2);
+    font-family: monospace;
+}
+
+.message pre {
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    max-width: 100%;
+    background: rgba(128, 128, 128, 0.15);
+}
+
+.message pre code {
+    padding: 0;
+    background: transparent;
+}
+
+.message hr {
+    border: none;
+    border-top: 1px solid rgba(128, 128, 128, 0.35);
+    margin: 12px 0;
+}
