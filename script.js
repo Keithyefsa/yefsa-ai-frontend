@@ -25,7 +25,6 @@ const historyPanel = document.getElementById("historyPanel");
 const historyList = document.getElementById("historyList");
 const closeHistoryBtn = document.getElementById("closeHistoryBtn");
 
-// Optional developer menu button
 const developerBtn =
     document.getElementById("chatDeveloperBtn") ||
     document.getElementById("developerBtn");
@@ -39,8 +38,7 @@ const API_URL =
 const MEMORY_API_URL =
     "https://yefsa-ai-backend.onrender.com/memory";
 
-const BMY_TOKEN_KEY =
-    "bmy_auth_token";
+const BMY_TOKEN_KEY = "bmy_auth_token";
 
 const CONVERSATIONS_KEY =
     "yefsa_ai_conversations_v1";
@@ -56,15 +54,6 @@ const MEMORY_KEY =
 
 const WELCOME_MESSAGE =
     "Hello! I'm Yefsa AI. How can I help you today?";
-
-
-// Stop safely if essential HTML elements are missing
-
-if (!chatBox || !userInput || !sendBtn) {
-    console.error(
-        "Yefsa AI: Required chat HTML elements are missing."
-    );
-}
 
 
 // 3. APPLICATION DATA
@@ -84,9 +73,11 @@ function makeId() {
 // 5. GET ACTIVE CONVERSATION
 
 function getActiveChat() {
+
     return conversations.find(
         chat => chat.id === activeChatId
     );
+
 }
 
 
@@ -115,9 +106,6 @@ function getBmyToken() {
 
 
 // 7. LONG-TERM MEMORY
-
-// Guest memories remain stored locally.
-// Authenticated memories are stored in Neon.
 
 function loadMemories() {
 
@@ -236,49 +224,251 @@ function saveConversations() {
 }
 
 
-// 9. SAVE ACTIVE CHAT
+// 9. MARKDOWN MESSAGE RENDERER
 
-function saveActiveChat() {
+function renderFormattedMessage(container, text) {
 
-    const chat = getActiveChat();
+    const rawText = String(text || "");
 
-    if (!chat || !chatBox) return;
+    container.dataset.rawText = rawText;
 
-    chat.messages = Array.from(
-        chatBox.querySelectorAll(".message")
-    )
-    .filter(message =>
-        !message.classList.contains("thinking")
-    )
-    .map(message => ({
+    container.replaceChildren();
 
-        text: message.textContent,
+    function addInlineFormatting(parent, content) {
 
-        sender: message.classList.contains("user")
-            ? "user"
-            : "bot"
+        const pattern =
+            /(\*\*[\s\S]+?\*\*|__[\s\S]+?__|(?<!\*)\*[^*\n]+\*|(?<!_)_[^_\n]+_|`[^`\n]+`)/g;
 
-    }));
+        let lastIndex = 0;
+        let match;
 
-    const firstUserMessage = chat.messages.find(
-        item => item.sender === "user"
-    );
+        while ((match = pattern.exec(content)) !== null) {
 
-    if (!chat.customTitle) {
+            parent.appendChild(
+                document.createTextNode(
+                    content.slice(lastIndex, match.index)
+                )
+            );
 
-        chat.title = firstUserMessage
-            ? firstUserMessage.text.slice(0, 35)
-            : "New Chat";
+            const token = match[0];
+
+            let element;
+
+            if (token.startsWith("**") || token.startsWith("__")) {
+
+                element = document.createElement("strong");
+
+            } else if (token.startsWith("`")) {
+
+                element = document.createElement("code");
+
+            } else {
+
+                element = document.createElement("em");
+
+            }
+
+            element.textContent = token.replace(
+                /^(\*\*|__|\*|_|`)|(\*\*|__|\*|_|`)$/g,
+                ""
+            );
+
+            parent.appendChild(element);
+
+            lastIndex = pattern.lastIndex;
+
+        }
+
+        parent.appendChild(
+            document.createTextNode(
+                content.slice(lastIndex)
+            )
+        );
 
     }
 
-    chat.updatedAt = Date.now();
 
-    conversations.sort(
-        (a, b) => b.updatedAt - a.updatedAt
-    );
+    const lines = rawText.split("\n");
 
-    saveConversations();
+    let currentList = null;
+    let codeBlock = false;
+    let codeContent = [];
+
+    function closeList() {
+        currentList = null;
+    }
+
+
+    function addCodeBlock() {
+
+        const pre = document.createElement("pre");
+        const code = document.createElement("code");
+
+        code.textContent = codeContent.join("\n");
+
+        pre.appendChild(code);
+
+        container.appendChild(pre);
+
+        codeContent = [];
+
+    }
+
+
+    lines.forEach(line => {
+
+        // CODE BLOCKS
+
+        if (line.trim().startsWith("```")) {
+
+            closeList();
+
+            if (!codeBlock) {
+
+                codeBlock = true;
+                codeContent = [];
+
+            } else {
+
+                addCodeBlock();
+
+                codeBlock = false;
+
+            }
+
+            return;
+
+        }
+
+
+        if (codeBlock) {
+
+            codeContent.push(line);
+
+            return;
+
+        }
+
+
+        // EMPTY LINES
+
+        if (!line.trim()) {
+
+            closeList();
+
+            return;
+
+        }
+
+
+        // HEADINGS
+
+        const headingMatch = line.match(
+            /^(#{1,3})\s+(.+)$/
+        );
+
+        if (headingMatch) {
+
+            closeList();
+
+            const heading = document.createElement(
+                "h" + headingMatch[1].length
+            );
+
+            addInlineFormatting(
+                heading,
+                headingMatch[2]
+            );
+
+            container.appendChild(heading);
+
+            return;
+
+        }
+
+
+        // HORIZONTAL DIVIDER
+
+        if (/^\s*([-*_])\1{2,}\s*$/.test(line)) {
+
+            closeList();
+
+            container.appendChild(
+                document.createElement("hr")
+            );
+
+            return;
+
+        }
+
+
+        // BULLET AND NUMBERED LISTS
+
+        const listMatch = line.match(
+            /^(\s*)([-*+]|\d+\.)\s+(.+)$/
+        );
+
+        if (listMatch) {
+
+            const ordered = /^\d+\./.test(
+                listMatch[2]
+            );
+
+            const listType = ordered ? "ol" : "ul";
+
+            if (
+                !currentList ||
+                currentList.tagName.toLowerCase() !== listType
+            ) {
+
+                closeList();
+
+                currentList = document.createElement(
+                    listType
+                );
+
+                container.appendChild(currentList);
+
+            }
+
+            const item = document.createElement("li");
+
+            addInlineFormatting(
+                item,
+                listMatch[3]
+            );
+
+            currentList.appendChild(item);
+
+            return;
+
+        }
+
+
+        closeList();
+
+
+        // NORMAL PARAGRAPHS
+
+        const paragraph = document.createElement("p");
+
+        addInlineFormatting(
+            paragraph,
+            line
+        );
+
+        container.appendChild(paragraph);
+
+    });
+
+
+    // CLOSE AN UNFINISHED CODE BLOCK
+
+    if (codeBlock) {
+
+        addCodeBlock();
+
+    }
 
 }
 
@@ -316,7 +506,17 @@ function addMessage(text, sender, shouldSave = true) {
 
     message.classList.add("message", sender);
 
-    message.textContent = String(text);
+    if (sender === "bot") {
+
+        renderFormattedMessage(message, text);
+
+    } else {
+
+        message.textContent = String(text);
+
+        message.dataset.rawText = String(text);
+
+    }
 
     styleMessage(message, sender);
 
@@ -325,7 +525,9 @@ function addMessage(text, sender, shouldSave = true) {
     chatBox.scrollTop = chatBox.scrollHeight;
 
     if (shouldSave) {
+
         saveActiveChat();
+
     }
 
     return message;
@@ -333,7 +535,57 @@ function addMessage(text, sender, shouldSave = true) {
 }
 
 
-// 12. DISPLAY ACTIVE CONVERSATION
+// 12. SAVE ACTIVE CHAT
+
+function saveActiveChat() {
+
+    const chat = getActiveChat();
+
+    if (!chat || !chatBox) return;
+
+    chat.messages = Array.from(
+        chatBox.querySelectorAll(".message")
+    )
+    .filter(message =>
+        !message.classList.contains("thinking")
+    )
+    .map(message => ({
+
+        text:
+            message.dataset.rawText ||
+            message.textContent,
+
+        sender: message.classList.contains("user")
+            ? "user"
+            : "bot"
+
+    }));
+
+
+    const firstUserMessage = chat.messages.find(
+        item => item.sender === "user"
+    );
+
+    if (!chat.customTitle) {
+
+        chat.title = firstUserMessage
+            ? firstUserMessage.text.slice(0, 35)
+            : "New Chat";
+
+    }
+
+    chat.updatedAt = Date.now();
+
+    conversations.sort(
+        (a, b) => b.updatedAt - a.updatedAt
+    );
+
+    saveConversations();
+
+}
+
+
+// 13. DISPLAY ACTIVE CONVERSATION
 
 function renderActiveChat() {
 
@@ -352,7 +604,24 @@ function renderActiveChat() {
 
         message.classList.add("message", sender);
 
-        message.textContent = String(item.text || "");
+        if (sender === "bot") {
+
+            renderFormattedMessage(
+                message,
+                item.text || ""
+            );
+
+        } else {
+
+            message.textContent = String(
+                item.text || ""
+            );
+
+            message.dataset.rawText = String(
+                item.text || ""
+            );
+
+        }
 
         styleMessage(message, sender);
 
@@ -365,7 +634,7 @@ function renderActiveChat() {
 }
 
 
-// 13. CREATE NEW CHAT
+// 14. CREATE NEW CHAT
 
 function startNewChat() {
 
@@ -397,13 +666,15 @@ function startNewChat() {
     renderActiveChat();
 
     if (dropdownMenu) {
+
         dropdownMenu.hidden = true;
+
     }
 
 }
 
 
-// 14. LOAD PREVIOUS CONVERSATIONS
+// 15. LOAD PREVIOUS CONVERSATIONS
 
 function loadConversations() {
 
@@ -430,7 +701,8 @@ function loadConversations() {
 
         }
 
-        // Migrate older saved conversation
+
+        // MIGRATE OLDER CONVERSATION
 
         if (conversations.length === 0) {
 
@@ -467,6 +739,7 @@ function loadConversations() {
 
         }
 
+
         if (conversations.length === 0) {
 
             startNewChat();
@@ -474,6 +747,7 @@ function loadConversations() {
             return;
 
         }
+
 
         activeChatId = localStorage.getItem(
             ACTIVE_CHAT_KEY
@@ -507,7 +781,7 @@ function loadConversations() {
 }
 
 
-// 15. SAVE MEMORY TO THE CORRECT STORAGE
+// 16. SAVE MEMORY TO THE CORRECT STORAGE
 
 async function rememberInformation(memory) {
 
@@ -523,8 +797,8 @@ async function rememberInformation(memory) {
 
     const token = getBmyToken();
 
-    // Authenticated BMY account:
-    // Save memory to the backend and Neon.
+
+    // AUTHENTICATED BMY ACCOUNT
 
     if (token) {
 
@@ -551,6 +825,7 @@ async function rememberInformation(memory) {
             }
         );
 
+
         const responseText = await response.text();
 
         let data;
@@ -567,6 +842,7 @@ async function rememberInformation(memory) {
 
         }
 
+
         if (!response.ok) {
 
             throw new Error(
@@ -579,8 +855,8 @@ async function rememberInformation(memory) {
 
     }
 
-    // Guest account:
-    // Save memory only on this device.
+
+    // GUEST ACCOUNT
 
     const saved = addMemory(cleanMemory);
 
@@ -597,7 +873,7 @@ async function rememberInformation(memory) {
 }
 
 
-// 16. SEND MESSAGE TO YEFSA AI
+// 17. SEND MESSAGE TO YEFSA AI
 
 async function sendMessage() {
 
@@ -616,7 +892,7 @@ async function sendMessage() {
     if (!message || sendBtn.disabled) return;
 
 
-    // Handle explicit memory requests
+    // HANDLE EXPLICIT MEMORY REQUESTS
 
     const rememberMatch = message.match(
         /^remember that\s+(.+)/i
@@ -680,7 +956,7 @@ async function sendMessage() {
     }
 
 
-    // Collect previous conversation messages
+    // COLLECT PREVIOUS CONVERSATION MESSAGES
 
     const activeChat = getActiveChat();
 
@@ -712,7 +988,7 @@ async function sendMessage() {
         : [];
 
 
-    // Display user message
+    // DISPLAY USER MESSAGE
 
     addMessage(message, "user");
 
@@ -721,7 +997,7 @@ async function sendMessage() {
     sendBtn.disabled = true;
 
 
-    // Display thinking indicator
+    // DISPLAY THINKING INDICATOR
 
     const thinking = addMessage(
         "Thinking...",
@@ -740,12 +1016,12 @@ async function sendMessage() {
         );
 
 
-        // Get current BMY authentication token
+        // GET CURRENT BMY AUTHENTICATION TOKEN
 
         const token = getBmyToken();
 
 
-        // Prepare request headers
+        // PREPARE REQUEST HEADERS
 
         const headers = {
 
@@ -761,16 +1037,13 @@ async function sendMessage() {
         }
 
 
-        // Prepare request body
+        // PREPARE REQUEST BODY
 
         const requestBody = {
 
             message: message,
 
             history: history,
-
-            // Authenticated users get memories from Neon.
-            // Guests continue using local browser memories.
 
             memories: token
                 ? []
@@ -779,7 +1052,7 @@ async function sendMessage() {
         };
 
 
-        // Send request to Flask backend
+        // SEND REQUEST TO FLASK BACKEND
 
         const response = await fetch(
             API_URL,
@@ -795,7 +1068,7 @@ async function sendMessage() {
         );
 
 
-        // Read backend response safely
+        // READ BACKEND RESPONSE
 
         const responseText = await response.text();
 
@@ -821,7 +1094,7 @@ async function sendMessage() {
         );
 
 
-        // Check for backend errors
+        // CHECK FOR BACKEND ERRORS
 
         if (!response.ok) {
 
@@ -833,7 +1106,7 @@ async function sendMessage() {
         }
 
 
-        // Check that the reply exists
+        // CHECK THAT THE REPLY EXISTS
 
         if (
             !data ||
@@ -848,9 +1121,12 @@ async function sendMessage() {
         }
 
 
-        // Display AI response
+        // DISPLAY FORMATTED AI RESPONSE
 
-        thinking.textContent = data.reply;
+        renderFormattedMessage(
+            thinking,
+            data.reply
+        );
 
         thinking.classList.remove("thinking");
 
@@ -866,8 +1142,12 @@ async function sendMessage() {
             error
         );
 
-        thinking.textContent =
+        const errorMessage =
             "Connection error: " + error.message;
+
+        thinking.textContent = errorMessage;
+
+        thinking.dataset.rawText = errorMessage;
 
         thinking.classList.remove("thinking");
 
@@ -887,7 +1167,7 @@ async function sendMessage() {
 }
 
 
-// 17. OPEN AND CLOSE MENU
+// 18. OPEN AND CLOSE MENU
 
 if (menuBtn && dropdownMenu) {
 
@@ -902,8 +1182,6 @@ if (menuBtn && dropdownMenu) {
         }
     );
 
-
-    // Close menu when tapping outside
 
     document.addEventListener(
         "click",
@@ -924,7 +1202,7 @@ if (menuBtn && dropdownMenu) {
 }
 
 
-// 18. NEW CHAT BUTTON
+// 19. NEW CHAT BUTTON
 
 if (newChatBtn) {
 
@@ -940,7 +1218,7 @@ if (newChatBtn) {
 }
 
 
-// 19. DELETE CURRENT CHAT
+// 20. DELETE CURRENT CHAT
 
 if (deleteChatBtn) {
 
@@ -949,7 +1227,9 @@ if (deleteChatBtn) {
         function() {
 
             if (dropdownMenu) {
+
                 dropdownMenu.hidden = true;
+
             }
 
             const confirmed = confirm(
@@ -982,7 +1262,7 @@ if (deleteChatBtn) {
 }
 
 
-// 20. DISPLAY CHAT HISTORY
+// 21. DISPLAY CHAT HISTORY
 
 function renderHistory() {
 
@@ -1007,7 +1287,7 @@ function renderHistory() {
         row.className = "history-row";
 
 
-        // Conversation button
+        // CONVERSATION BUTTON
 
         const item = document.createElement("button");
 
@@ -1044,14 +1324,16 @@ function renderHistory() {
                 renderActiveChat();
 
                 if (historyPanel) {
+
                     historyPanel.hidden = true;
+
                 }
 
             }
         );
 
 
-        // Rename conversation
+        // RENAME CONVERSATION
 
         const renameBtn = document.createElement("button");
 
@@ -1089,7 +1371,7 @@ function renderHistory() {
         );
 
 
-        // Delete conversation from history
+        // DELETE CONVERSATION FROM HISTORY
 
         const deleteBtn = document.createElement("button");
 
@@ -1157,7 +1439,7 @@ function renderHistory() {
 }
 
 
-// 21. OPEN CHAT HISTORY
+// 22. OPEN CHAT HISTORY
 
 if (historyBtn) {
 
@@ -1166,13 +1448,17 @@ if (historyBtn) {
         function() {
 
             if (dropdownMenu) {
+
                 dropdownMenu.hidden = true;
+
             }
 
             renderHistory();
 
             if (historyPanel) {
+
                 historyPanel.hidden = false;
+
             }
 
         }
@@ -1181,7 +1467,7 @@ if (historyBtn) {
 }
 
 
-// 22. CLOSE CHAT HISTORY
+// 23. CLOSE CHAT HISTORY
 
 if (closeHistoryBtn && historyPanel) {
 
@@ -1197,7 +1483,7 @@ if (closeHistoryBtn && historyPanel) {
 }
 
 
-// 23. SUBSCRIBE OPTION
+// 24. SUBSCRIBE OPTION
 
 if (subscribeBtn) {
 
@@ -1206,7 +1492,9 @@ if (subscribeBtn) {
         function() {
 
             if (dropdownMenu) {
+
                 dropdownMenu.hidden = true;
+
             }
 
             alert(
@@ -1219,7 +1507,7 @@ if (subscribeBtn) {
 }
 
 
-// 24. CHAT WITH DEVELOPER OPTION
+// 25. CHAT WITH DEVELOPER OPTION
 
 if (developerBtn) {
 
@@ -1228,7 +1516,9 @@ if (developerBtn) {
         function() {
 
             if (dropdownMenu) {
+
                 dropdownMenu.hidden = true;
+
             }
 
             alert(
@@ -1241,7 +1531,7 @@ if (developerBtn) {
 }
 
 
-// 25. SEND BUTTON
+// 26. SEND BUTTON
 
 if (sendBtn) {
 
@@ -1253,7 +1543,7 @@ if (sendBtn) {
 }
 
 
-// 26. ENTER KEY
+// 27. ENTER KEY
 
 if (userInput) {
 
@@ -1278,12 +1568,12 @@ if (userInput) {
 }
 
 
-// 27. START APPLICATION
+// 28. START APPLICATION
 
 loadConversations();
 
 
-// 28. REGISTER SERVICE WORKER
+// 29. REGISTER SERVICE WORKER
 
 if ("serviceWorker" in navigator) {
 
@@ -1318,9 +1608,9 @@ if ("serviceWorker" in navigator) {
 }
 
 
-// =====================================
+// ==========================================
 // YEFSATECH HOME SCREEN AND NAVIGATION
-// =====================================
+// ==========================================
 
 (function () {
 
@@ -1351,7 +1641,7 @@ if ("serviceWorker" in navigator) {
         document.getElementById("backHomeFromBmyBtn");
 
 
-    // Display greeting using the phone's local time
+    // DISPLAY GREETING USING LOCAL TIME
 
     function updateWelcomeGreeting() {
 
@@ -1389,24 +1679,30 @@ if ("serviceWorker" in navigator) {
     }
 
 
-    // Show a selected screen
+    // SHOW A SELECTED SCREEN
 
     function showScreen(screen) {
 
         if (homeScreen) {
+
             homeScreen.hidden = screen !== "home";
+
         }
 
         if (chatScreen) {
+
             chatScreen.hidden = screen !== "chat";
+
         }
 
         if (bmyScreen) {
+
             bmyScreen.hidden = screen !== "bmy";
+
         }
 
 
-        // Close open chat menus when leaving chat
+        // CLOSE CHAT MENUS WHEN LEAVING CHAT
 
         if (screen !== "chat") {
 
@@ -1417,11 +1713,15 @@ if ("serviceWorker" in navigator) {
                 document.getElementById("historyPanel");
 
             if (dropdownMenu) {
+
                 dropdownMenu.hidden = true;
+
             }
 
             if (historyPanel) {
+
                 historyPanel.hidden = true;
+
             }
 
         }
@@ -1431,7 +1731,7 @@ if ("serviceWorker" in navigator) {
     }
 
 
-    // Open Yefsa AI
+    // OPEN YEFSA AI
 
     if (openYefsaAiBtn) {
 
@@ -1447,7 +1747,7 @@ if ("serviceWorker" in navigator) {
     }
 
 
-    // Open BMY application
+    // OPEN BMY APPLICATION
 
     if (openBmyBtn) {
 
@@ -1464,7 +1764,7 @@ if ("serviceWorker" in navigator) {
     }
 
 
-    // Return from Yefsa AI to home
+    // RETURN FROM YEFSA AI TO HOME
 
     if (backHomeFromChatBtn) {
 
@@ -1480,7 +1780,7 @@ if ("serviceWorker" in navigator) {
     }
 
 
-    // Return from BMY to home
+    // RETURN FROM BMY TO HOME
 
     if (backHomeFromBmyBtn) {
 
@@ -1496,7 +1796,7 @@ if ("serviceWorker" in navigator) {
     }
 
 
-    // Initialize the home screen
+    // INITIALIZE HOME SCREEN
 
     updateWelcomeGreeting();
 
