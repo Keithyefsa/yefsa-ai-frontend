@@ -586,7 +586,6 @@ $("year").textContent = new Date().getFullYear();
 
 render();
 
-
 /* ==========================================
    15. BACKEND AUTHENTICATION
 ========================================== */
@@ -594,18 +593,14 @@ render();
 const BMY_API = "https://yefsa-ai-backend.onrender.com";
 
 const bmyAuthScreen = $("authScreen");
-
 const bmyBusinessScreen = $("businessScreen");
-
 const bmySidebar = $("sidebar");
-
 const bmyMain = document.querySelector("main");
 
 const BMY_TOKEN_KEY = "bmy_auth_token";
-
 const BMY_BUSINESSES_KEY = "bmy_businesses";
-
 const BMY_SELECTED_KEY = "bmy_selected_business";
+const BMY_PASSWORD_CHANGE_KEY = "bmy_must_change_password";
 
 
 /* ==========================================
@@ -615,27 +610,287 @@ const BMY_SELECTED_KEY = "bmy_selected_business";
 function bmyShowLogin() {
 
     bmyAuthScreen.hidden = false;
-
     bmyBusinessScreen.hidden = true;
-
     bmySidebar.hidden = true;
-
     bmyMain.hidden = true;
+
+    const panel = $("bmyPasswordChangePanel");
+
+    if (panel) {
+        panel.hidden = true;
+    }
+
+    $("loginForm").hidden = false;
+    $("registerForm").hidden = true;
+
+    if ($("authSwitchButton")) {
+        $("authSwitchButton").hidden = true;
+    }
+
+    if ($("authSwitchText")) {
+        $("authSwitchText").hidden = true;
+    }
+
+    $("authTitle").textContent = "Welcome back";
+
+    $("authDescription").textContent =
+        "Sign in to manage your business.";
+
+    $("authError").hidden = true;
 }
 
 
 /* ==========================================
-   17. SHOW BUSINESS SELECTION
+   17. SHOW MANDATORY PASSWORD CHANGE
+========================================== */
+
+function bmyShowPasswordChange() {
+
+    bmyAuthScreen.hidden = false;
+    bmyBusinessScreen.hidden = true;
+    bmySidebar.hidden = true;
+    bmyMain.hidden = true;
+
+    $("loginForm").hidden = true;
+    $("registerForm").hidden = true;
+
+    if ($("authSwitchButton")) {
+        $("authSwitchButton").hidden = true;
+    }
+
+    if ($("authSwitchText")) {
+        $("authSwitchText").hidden = true;
+    }
+
+    $("authTitle").textContent = "Change your password";
+
+    $("authDescription").textContent =
+        "Your account uses a temporary password. Create a new password to continue.";
+
+    let panel = $("bmyPasswordChangePanel");
+
+    if (!panel) {
+
+        panel = document.createElement("div");
+
+        panel.id = "bmyPasswordChangePanel";
+        panel.className = "auth-card";
+
+        panel.innerHTML = `
+            <form id="bmyPasswordChangeForm">
+
+                <div class="form-group">
+                    <label for="bmyCurrentPassword">
+                        Temporary password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="bmyCurrentPassword"
+                        placeholder="Enter your temporary password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="bmyNewPassword">
+                        New password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="bmyNewPassword"
+                        placeholder="Create a new password"
+                        autocomplete="new-password"
+                        minlength="8"
+                        maxlength="128"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="bmyConfirmPassword">
+                        Confirm new password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="bmyConfirmPassword"
+                        placeholder="Confirm your new password"
+                        autocomplete="new-password"
+                        minlength="8"
+                        maxlength="128"
+                        required
+                    >
+                </div>
+
+                <p
+                    id="bmyPasswordChangeError"
+                    class="error-message"
+                    hidden
+                ></p>
+
+                <button
+                    type="submit"
+                    id="bmyPasswordChangeButton"
+                    class="primary"
+                >
+                    Change password
+                </button>
+
+            </form>
+        `;
+
+        bmyAuthScreen.appendChild(panel);
+
+        $("bmyPasswordChangeForm").addEventListener(
+            "submit",
+            bmyHandlePasswordChange
+        );
+    }
+
+    panel.hidden = false;
+}
+
+
+/* ==========================================
+   18. HANDLE PASSWORD CHANGE
+========================================== */
+
+async function bmyHandlePasswordChange(event) {
+
+    event.preventDefault();
+
+    const currentPassword = $("bmyCurrentPassword").value;
+    const newPassword = $("bmyNewPassword").value;
+    const confirmPassword = $("bmyConfirmPassword").value;
+
+    const button = $("bmyPasswordChangeButton");
+    const errorBox = $("bmyPasswordChangeError");
+
+    errorBox.hidden = true;
+
+    if (newPassword.length < 8) {
+
+        errorBox.textContent =
+            "Your new password must contain at least 8 characters.";
+
+        errorBox.hidden = false;
+
+        return;
+    }
+
+    if (newPassword.length > 128) {
+
+        errorBox.textContent =
+            "Your new password is too long.";
+
+        errorBox.hidden = false;
+
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+
+        errorBox.textContent =
+            "The new passwords do not match.";
+
+        errorBox.hidden = false;
+
+        return;
+    }
+
+    if (currentPassword === newPassword) {
+
+        errorBox.textContent =
+            "Your new password must be different from the temporary password.";
+
+        errorBox.hidden = false;
+
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Updating password...";
+
+    try {
+
+        await bmyRequest("/bmy/account/change-password", {
+
+            method: "POST",
+
+            body: JSON.stringify({
+
+                current_password: currentPassword,
+
+                new_password: newPassword,
+
+                confirm_password: confirmPassword
+
+            })
+
+        });
+
+        // Clear the temporary-password requirement.
+
+        sessionStorage.removeItem(BMY_PASSWORD_CHANGE_KEY);
+
+        // Clear all password fields.
+
+        $("bmyPasswordChangeForm").reset();
+
+        toast("Password changed successfully.");
+
+        // Continue to business selection.
+
+        const businesses = JSON.parse(
+            sessionStorage.getItem(BMY_BUSINESSES_KEY) || "[]"
+        );
+
+        if (businesses.length) {
+
+            bmyShowBusinesses(businesses);
+
+        } else {
+
+            bmyLogout();
+        }
+
+    } catch (error) {
+
+        console.error("BMY password change error:", error);
+
+        errorBox.textContent = error.message;
+
+        errorBox.hidden = false;
+
+    } finally {
+
+        button.disabled = false;
+        button.textContent = "Change password";
+    }
+}
+
+
+/* ==========================================
+   19. SHOW BUSINESS SELECTION
 ========================================== */
 
 function bmyShowBusinesses(businesses) {
 
+    // Never allow business selection before password change.
+
+    if (
+        sessionStorage.getItem(BMY_PASSWORD_CHANGE_KEY) === "true"
+    ) {
+        bmyShowPasswordChange();
+        return;
+    }
+
     bmyAuthScreen.hidden = true;
-
     bmyBusinessScreen.hidden = false;
-
     bmySidebar.hidden = true;
-
     bmyMain.hidden = true;
 
     const list = $("businessList");
@@ -670,7 +925,6 @@ function bmyShowBusinesses(businesses) {
 
     `).join("");
 
-
     list.querySelectorAll("[data-business-index]").forEach(button => {
 
         button.addEventListener("click", () => {
@@ -686,7 +940,7 @@ function bmyShowBusinesses(businesses) {
 
 
 /* ==========================================
-   18. BACKEND REQUEST FUNCTION
+   20. BACKEND REQUEST FUNCTION
 ========================================== */
 
 async function bmyRequest(path, options = {}) {
@@ -709,7 +963,6 @@ async function bmyRequest(path, options = {}) {
         }
     });
 
-
     let result;
 
     try {
@@ -723,7 +976,6 @@ async function bmyRequest(path, options = {}) {
         );
     }
 
-
     if (!response.ok) {
 
         const error = new Error(
@@ -731,6 +983,7 @@ async function bmyRequest(path, options = {}) {
         );
 
         error.status = response.status;
+        error.code = result.code;
 
         throw error;
     }
@@ -739,15 +992,14 @@ async function bmyRequest(path, options = {}) {
 }
 
 
-
 /* ==========================================
-   19. LOGIN AND REGISTRATION
+   21. LOGIN
 ========================================== */
 
-// Switch between login and registration screens
+// Public registration is disabled.
+// Only the Super Admin can create BMY business accounts.
 
 const authSwitchButton = $("authSwitchButton");
-
 const authSwitchText = $("authSwitchText");
 
 let authMode = "login";
@@ -757,59 +1009,59 @@ function bmySetAuthMode(mode) {
 
     authMode = mode;
 
-    const isLogin = mode === "login";
+    $("loginForm").hidden = false;
+    $("registerForm").hidden = true;
 
-    $("loginForm").hidden = !isLogin;
+    $("authTitle").textContent = "Welcome back";
 
-    $("registerForm").hidden = isLogin;
+    $("authDescription").textContent =
+        "Sign in to manage your business.";
 
-    $("authTitle").textContent = isLogin
-        ? "Welcome back"
-        : "Create your account";
+    if (authSwitchButton) {
+        authSwitchButton.hidden = true;
+    }
 
-    $("authDescription").textContent = isLogin
-        ? "Sign in to manage your business."
-        : "Set up your BMY business workspace.";
-
-    authSwitchText.textContent = isLogin
-        ? "New to BMY?"
-        : "Already have an account?";
-
-    authSwitchButton.textContent = isLogin
-        ? "Create an account"
-        : "Sign in";
+    if (authSwitchText) {
+        authSwitchText.hidden = true;
+    }
 
     $("authError").hidden = true;
-
     $("registerError").hidden = true;
 }
 
 
-authSwitchButton.addEventListener("click", () => {
+// Remove public registration from the interface.
 
-    bmySetAuthMode(
-        authMode === "login" ? "register" : "login"
-    );
+$("registerForm").hidden = true;
 
-});
+if (authSwitchButton) {
+    authSwitchButton.hidden = true;
+}
+
+if (authSwitchText) {
+    authSwitchText.hidden = true;
+}
 
 
-// Save authentication and business information
+// Save authentication and business information.
 
 function bmySaveAuthSession(response) {
 
     if (
-    response.status !== "success" ||
-    !response.token ||
-    !Array.isArray(response.businesses)
-) {
-    console.error("Unexpected BMY authentication response:", response);
+        response.status !== "success" ||
+        !response.token ||
+        !Array.isArray(response.businesses)
+    ) {
 
-    throw new Error(
-        "Authentication response mismatch. Received fields: " +
-        Object.keys(response || {}).join(", ")
-    );
-}
+        console.error(
+            "Unexpected BMY authentication response:",
+            response
+        );
+
+        throw new Error(
+            "Authentication response mismatch."
+        );
+    }
 
     sessionStorage.setItem(
         BMY_TOKEN_KEY,
@@ -823,6 +1075,19 @@ function bmySaveAuthSession(response) {
 
     sessionStorage.removeItem(BMY_SELECTED_KEY);
 
+    if (response.must_change_password === true) {
+
+        sessionStorage.setItem(
+            BMY_PASSWORD_CHANGE_KEY,
+            "true"
+        );
+
+    } else {
+
+        sessionStorage.removeItem(
+            BMY_PASSWORD_CHANGE_KEY
+        );
+    }
 }
 
 
@@ -833,20 +1098,15 @@ $("loginForm").addEventListener("submit", async event => {
     event.preventDefault();
 
     const button = $("loginButton");
-
     const errorBox = $("authError");
 
     const email = $("loginEmail").value.trim();
-
     const password = $("loginPassword").value;
-
 
     errorBox.hidden = true;
 
     button.disabled = true;
-
     button.textContent = "Signing in...";
-
 
     try {
 
@@ -861,127 +1121,46 @@ $("loginForm").addEventListener("submit", async event => {
 
         });
 
-
         bmySaveAuthSession(response);
 
         $("loginPassword").value = "";
 
-        bmyShowBusinesses(response.businesses);
+        if (response.must_change_password === true) {
 
+            bmyShowPasswordChange();
+
+        } else {
+
+            bmyShowBusinesses(response.businesses);
+        }
 
     } catch (error) {
 
         console.error("BMY login error:", error);
 
         errorBox.textContent = error.message;
-
         errorBox.hidden = false;
 
     } finally {
 
         button.disabled = false;
-
         button.textContent = "Sign in";
-
     }
-
 });
-
-
-// REGISTRATION
-
-$("registerForm").addEventListener("submit", async event => {
-
-    event.preventDefault();
-
-    const button = $("registerButton");
-
-    const errorBox = $("registerError");
-
-
-    const fullName = $("registerName").value.trim();
-
-    const email = $("registerEmail").value.trim();
-
-    const password = $("registerPassword").value;
-
-    const businessName = $("registerBusiness").value.trim();
-
-
-    errorBox.hidden = true;
-
-
-    if (password.length < 8) {
-
-        errorBox.textContent =
-            "Password must contain at least 8 characters.";
-
-        errorBox.hidden = false;
-
-        return;
-    }
-
-
-    button.disabled = true;
-
-    button.textContent = "Creating account...";
-
-
-    try {
-
-        const response = await bmyRequest("/bmy/auth/register", {
-
-            method: "POST",
-
-            body: JSON.stringify({
-
-                full_name: fullName,
-
-                email,
-
-                password,
-
-                business_name: businessName
-
-            })
-
-        });
-
-
-        bmySaveAuthSession(response);
-
-        $("registerPassword").value = "";
-
-        toast("Account created successfully.");
-
-        bmyShowBusinesses(response.businesses);
-
-
-    } catch (error) {
-
-        console.error("BMY registration error:", error);
-
-        errorBox.textContent = error.message;
-
-        errorBox.hidden = false;
-
-    } finally {
-
-        button.disabled = false;
-
-        button.textContent = "Create account";
-
-    }
-
-});
-
 
 
 /* ==========================================
-   20. SELECT BUSINESS
+   22. SELECT BUSINESS
 ========================================== */
 
 async function bmySelectBusiness(business) {
+
+    if (
+        sessionStorage.getItem(BMY_PASSWORD_CHANGE_KEY) === "true"
+    ) {
+        bmyShowPasswordChange();
+        return;
+    }
 
     const list = $("businessList");
 
@@ -989,28 +1168,35 @@ async function bmySelectBusiness(business) {
         button.disabled = true;
     });
 
-
     try {
 
-        await bmyRequest(
-            `/bmy/business/${business.business_id}/access`
-        );
+        // Verify membership access.
 
+        await bmyRequest(
+            `/bmy/account/business/${business.business_id}/access`
+        );
 
         sessionStorage.setItem(
             BMY_SELECTED_KEY,
             JSON.stringify(business)
         );
 
-
         bmyOpenWorkspace(business);
-
 
     } catch (error) {
 
         console.error("BMY business selection error:", error);
 
-        if (error.status === 401 || error.status === 403) {
+        if (error.code === "password_change_required") {
+
+            sessionStorage.setItem(
+                BMY_PASSWORD_CHANGE_KEY,
+                "true"
+            );
+
+            bmyShowPasswordChange();
+
+        } else if (error.status === 401 || error.status === 403) {
 
             bmyLogout();
 
@@ -1029,7 +1215,7 @@ async function bmySelectBusiness(business) {
 
 
 /* ==========================================
-   21. LOAD LIVE DASHBOARD DATA
+   23. LOAD LIVE DASHBOARD DATA
 ========================================== */
 
 async function bmyLoadDashboard() {
@@ -1040,13 +1226,11 @@ async function bmyLoadDashboard() {
 
     if (!business) return;
 
-
     try {
 
         const result = await bmyRequest(
             `/bmy/business/${business.business_id}/dashboard`
         );
-
 
         if (
             !result.business ||
@@ -1061,15 +1245,12 @@ async function bmyLoadDashboard() {
             );
         }
 
-
         const currency = result.business.currency || "UGX";
-
 
         function money(amount) {
 
             return `${currency} ${Number(amount || 0).toLocaleString()}`;
         }
-
 
         // BUSINESS TOTALS
 
@@ -1141,12 +1322,23 @@ async function bmyLoadDashboard() {
                 '<tr><td colspan="4" class="empty">No transactions yet.</td></tr>';
         }
 
-
         console.log("BMY dashboard loaded from backend.");
 
     } catch (error) {
 
         console.error("BMY dashboard error:", error);
+
+        if (error.code === "password_change_required") {
+
+            sessionStorage.setItem(
+                BMY_PASSWORD_CHANGE_KEY,
+                "true"
+            );
+
+            bmyShowPasswordChange();
+
+            return;
+        }
 
         toast("Could not load live dashboard data.");
     }
@@ -1154,22 +1346,24 @@ async function bmyLoadDashboard() {
 
 
 /* ==========================================
-   22. OPEN BUSINESS WORKSPACE
+   24. OPEN BUSINESS WORKSPACE
 ========================================== */
 
 function bmyOpenWorkspace(business) {
 
+    if (
+        sessionStorage.getItem(BMY_PASSWORD_CHANGE_KEY) === "true"
+    ) {
+        bmyShowPasswordChange();
+        return;
+    }
+
     bmyAuthScreen.hidden = true;
-
     bmyBusinessScreen.hidden = true;
-
     bmySidebar.hidden = false;
-
     bmyMain.hidden = false;
 
-
     const workspace = document.querySelector(".workspace");
-
 
     if (workspace) {
 
@@ -1180,14 +1374,11 @@ function bmyOpenWorkspace(business) {
             business.business_type || "Business account";
     }
 
-
     const logoutButton = $("bmyLogout");
 
     if (logoutButton) {
-
         logoutButton.hidden = false;
     }
-
 
     go("dashboard");
 
@@ -1196,7 +1387,7 @@ function bmyOpenWorkspace(business) {
 
 
 /* ==========================================
-   23. LOGOUT
+   25. LOGOUT
 ========================================== */
 
 function bmyLogout() {
@@ -1207,14 +1398,20 @@ function bmyLogout() {
 
     sessionStorage.removeItem(BMY_SELECTED_KEY);
 
+    sessionStorage.removeItem(BMY_PASSWORD_CHANGE_KEY);
+
     $("loginPassword").value = "";
+
+    if ($("bmyPasswordChangeForm")) {
+        $("bmyPasswordChangeForm").reset();
+    }
 
     bmyShowLogin();
 }
 
 
 /* ==========================================
-   24. CREATE LOGOUT BUTTON
+   26. CREATE LOGOUT BUTTON
 ========================================== */
 
 const bmyLogoutButton = document.createElement("button");
@@ -1235,13 +1432,12 @@ document.querySelector(".side-bottom").appendChild(
 
 
 /* ==========================================
-   25. RESTORE EXISTING SESSION
+   27. RESTORE EXISTING SESSION
 ========================================== */
 
 async function bmyRestoreSession() {
 
     const token = sessionStorage.getItem(BMY_TOKEN_KEY);
-
 
     if (!token) {
 
@@ -1250,9 +1446,18 @@ async function bmyRestoreSession() {
         return;
     }
 
+    // Restore the mandatory password-change screen first.
+
+    if (
+        sessionStorage.getItem(BMY_PASSWORD_CHANGE_KEY) === "true"
+    ) {
+
+        bmyShowPasswordChange();
+
+        return;
+    }
 
     const selected = sessionStorage.getItem(BMY_SELECTED_KEY);
-
 
     if (selected) {
 
@@ -1261,17 +1466,31 @@ async function bmyRestoreSession() {
             const business = JSON.parse(selected);
 
             await bmyRequest(
-                `/bmy/business/${business.business_id}/access`
+                `/bmy/account/business/${business.business_id}/access`
             );
 
             bmyOpenWorkspace(business);
 
             return;
 
-
         } catch (error) {
 
-            console.error("BMY session verification error:", error);
+            console.error(
+                "BMY session verification error:",
+                error
+            );
+
+            if (error.code === "password_change_required") {
+
+                sessionStorage.setItem(
+                    BMY_PASSWORD_CHANGE_KEY,
+                    "true"
+                );
+
+                bmyShowPasswordChange();
+
+                return;
+            }
 
             if (error.status === 401 || error.status === 403) {
 
@@ -1290,11 +1509,9 @@ async function bmyRestoreSession() {
         }
     }
 
-
     const businesses = JSON.parse(
         sessionStorage.getItem(BMY_BUSINESSES_KEY) || "[]"
     );
-
 
     if (businesses.length) {
 
@@ -1308,7 +1525,7 @@ async function bmyRestoreSession() {
 
 
 /* ==========================================
-   26. START BMY APPLICATION
+   28. START BMY APPLICATION
 ========================================== */
 
 bmyRestoreSession();
