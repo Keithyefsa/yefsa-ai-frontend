@@ -1100,6 +1100,7 @@ async function bmyLoadSuperAdminDashboard() {
 }
 
 
+
 /* ==========================================
    24. CREATE BUSINESS
 ========================================== */
@@ -1115,7 +1116,7 @@ async function bmyCreateBusiness(event) {
 
     errorBox.hidden = true;
     resultBox.hidden = true;
-    resultDetails.textContent = "";
+    resultDetails.replaceChildren();
 
     const businessName =
         $("superAdminBusinessName").value.trim();
@@ -1177,9 +1178,14 @@ async function bmyCreateBusiness(event) {
             !result.owner
         ) {
             throw new Error(
-                result.message || "Business creation response was incomplete."
+                result.error ||
+                result.message ||
+                "Business creation response was incomplete."
             );
         }
+
+        // Business creation succeeded.
+        // Display the returned information.
 
         form.reset();
 
@@ -1190,7 +1196,8 @@ async function bmyCreateBusiness(event) {
 
         const message = document.createElement("p");
         message.textContent =
-            result.message || "Business and owner account created.";
+            result.message ||
+            "Business and owner account created successfully.";
 
         const businessInfo = document.createElement("p");
         businessInfo.textContent =
@@ -1202,26 +1209,76 @@ async function bmyCreateBusiness(event) {
 
         const statusInfo = document.createElement("p");
         statusInfo.textContent =
-            `Account status: ${result.owner.account_status || "pending"}`;
-
-        const emailInfo = document.createElement("p");
-
-        emailInfo.textContent = result.email_sent
-            ? "Activation email sent to the owner."
-            : "Business created, but the activation email was not sent. Check the email service configuration.";
+            `Account status: ${result.owner.account_status || "active"}`;
 
         resultDetails.append(
             heading,
             message,
             businessInfo,
             ownerInfo,
-            statusInfo,
-            emailInfo
+            statusInfo
         );
+
+        // =================================
+        // TEMPORARY OWNER CREDENTIALS
+        // =================================
+
+        const credentials = result.credentials;
+
+        const credentialsHeading = document.createElement("h4");
+        credentialsHeading.textContent =
+            "Owner login credentials";
+
+        resultDetails.appendChild(credentialsHeading);
+
+        if (
+            credentials &&
+            credentials.temporary_password
+        ) {
+            const credentialsEmail = document.createElement("p");
+
+            credentialsEmail.textContent =
+                `Login email: ${credentials.email || result.owner.email}`;
+
+            const passwordLabel = document.createElement("p");
+            passwordLabel.textContent =
+                "Temporary password:";
+
+            const passwordValue = document.createElement("code");
+            passwordValue.textContent =
+                credentials.temporary_password;
+
+            passwordValue.style.display = "block";
+            passwordValue.style.padding = "12px";
+            passwordValue.style.margin = "8px 0";
+            passwordValue.style.overflowWrap = "anywhere";
+
+            const instruction = document.createElement("p");
+
+            instruction.textContent =
+                credentials.instruction ||
+                "Share these credentials securely with the business owner. They must change the temporary password when they first log in.";
+
+            resultDetails.append(
+                credentialsEmail,
+                passwordLabel,
+                passwordValue,
+                instruction
+            );
+
+        } else {
+            const warning = document.createElement("p");
+
+            warning.textContent =
+                "The business was created, but the server did not return the temporary password. Do not retry business creation. Check the server response before proceeding.";
+
+            resultDetails.appendChild(warning);
+        }
 
         toast("Business created successfully.");
 
-        // Refresh platform totals after successful creation.
+        // Refresh platform statistics.
+
         await bmyLoadSuperAdminDashboard();
 
     } catch (error) {
@@ -1230,7 +1287,9 @@ async function bmyCreateBusiness(event) {
             error
         );
 
-        errorBox.textContent = error.message;
+        errorBox.textContent =
+            error.message || "Business creation failed.";
+
         errorBox.hidden = false;
 
         if (
@@ -1242,6 +1301,7 @@ async function bmyCreateBusiness(event) {
             );
 
             bmyShowPasswordChange();
+
         } else if (
             error.status === 401 ||
             error.status === 403
