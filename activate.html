@@ -1,0 +1,380 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080b18">
+
+    <title>Activate Account | BMY</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background:
+                radial-gradient(circle at 15% 15%, #21143d 0, transparent 35%),
+                radial-gradient(circle at 85% 85%, #101c36 0, transparent 35%),
+                #080b18;
+            color: #f3f5ff;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 440px;
+            padding: 35px 28px;
+            background: rgba(17, 23, 43, 0.96);
+            border: 1px solid #293451;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .brand h1 {
+            font-size: 27px;
+            letter-spacing: 2px;
+        }
+
+        .brand h1 span {
+            color: #a78bfa;
+        }
+
+        .brand p {
+            margin-top: 9px;
+            color: #929bb5;
+            font-size: 13px;
+            letter-spacing: 3px;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 23px;
+            margin-bottom: 12px;
+        }
+
+        .description {
+            color: #aab3ca;
+            text-align: center;
+            line-height: 1.6;
+            font-size: 14px;
+            margin-bottom: 27px;
+        }
+
+        .field {
+            margin-bottom: 19px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 9px;
+            font-size: 13px;
+            color: #cbd2e5;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #303b59;
+            border-radius: 10px;
+            background: #0b1122;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #9b6bff;
+            box-shadow: 0 0 0 3px rgba(155,107,255,0.12);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #7950e8, #a16bff);
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .message {
+            display: none;
+            padding: 13px;
+            border-radius: 9px;
+            margin-top: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .error {
+            display: block;
+            color: #ffb4b4;
+            background: rgba(220, 50, 70, 0.12);
+            border: 1px solid rgba(220, 50, 70, 0.3);
+        }
+
+        .success {
+            display: block;
+            color: #a7f3c0;
+            background: rgba(40, 180, 100, 0.12);
+            border: 1px solid rgba(40, 180, 100, 0.3);
+        }
+
+        .login-link {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: #c4a7ff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .login-link:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            text-align: center;
+            color: #727d99;
+            font-size: 11px;
+            letter-spacing: 2px;
+            margin-top: 30px;
+        }
+
+        .invalid-token {
+            text-align: center;
+            color: #ffb4b4;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="container">
+
+        <div class="brand">
+            <h1>YEFSA<span>TECH</span></h1>
+            <p>BUSINESS MANAGEMENT BY YEFSA</p>
+        </div>
+
+        <section id="activationSection">
+
+            <h2>Activate Your Account</h2>
+
+            <p class="description">
+                Welcome to BMY! Create a secure password
+                to activate your business account.
+            </p>
+
+            <form id="activationForm">
+
+                <div class="field">
+                    <label for="password">New Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        minlength="8"
+                        maxlength="256"
+                        autocomplete="new-password"
+                        placeholder="Enter your new password"
+                        required
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        minlength="8"
+                        maxlength="256"
+                        autocomplete="new-password"
+                        placeholder="Confirm your new password"
+                        required
+                    >
+                </div>
+
+                <button type="submit" id="activateButton">
+                    Activate My Account
+                </button>
+
+            </form>
+
+            <div id="message" class="message"></div>
+
+            <a
+                id="loginLink"
+                class="login-link"
+                href="https://keithyefsa.github.io/yefsa-ai-frontend/indexbmy.html"
+            >
+                Continue to BMY Login →
+            </a>
+
+        </section>
+
+        <div class="footer">
+            POWERED BY YEFSATECH
+        </div>
+
+    </main>
+
+    <script>
+        const API_URL =
+            "https://yefsa-ai-backend.onrender.com/bmy/auth/activate";
+
+        const LOGIN_URL =
+            "https://keithyefsa.github.io/yefsa-ai-frontend/indexbmy.html";
+
+        const params = new URLSearchParams(
+            window.location.search
+        );
+
+        const activationToken = params.get("token");
+
+        const form = document.getElementById("activationForm");
+        const button = document.getElementById("activateButton");
+        const message = document.getElementById("message");
+        const loginLink = document.getElementById("loginLink");
+
+        function showMessage(text, type) {
+            message.textContent = text;
+            message.className = "message " + type;
+        }
+
+        if (!activationToken) {
+
+            form.style.display = "none";
+
+            document.querySelector(".description").textContent =
+                "This activation link is missing its security token.";
+
+            showMessage(
+                "Please open the complete activation link sent to your email.",
+                "error"
+            );
+
+        }
+
+        form.addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            const password =
+                document.getElementById("password").value;
+
+            const confirmPassword =
+                document.getElementById("confirmPassword").value;
+
+            if (!activationToken) {
+                return;
+            }
+
+            if (password.length < 8 || password.length > 256) {
+                showMessage(
+                    "Password must contain between 8 and 256 characters.",
+                    "error"
+                );
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showMessage(
+                    "The passwords do not match.",
+                    "error"
+                );
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = "Activating...";
+            message.className = "message";
+
+            try {
+
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        token: activationToken,
+                        new_password: password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || result.status !== "success") {
+                    throw new Error(
+                        result.error || "Account activation failed."
+                    );
+                }
+
+                form.style.display = "none";
+
+                document.querySelector(".description").textContent =
+                    "Your BMY account is now active. You can log in using your email and new password.";
+
+                showMessage(
+                    "Account activated successfully!",
+                    "success"
+                );
+
+                loginLink.style.display = "block";
+
+                // Remove the activation token from the browser URL.
+                window.history.replaceState(
+                    {},
+                    document.title,
+                    window.location.pathname
+                );
+
+            } catch (error) {
+
+                showMessage(
+                    error.message || "Unable to activate your account. Please try again.",
+                    "error"
+                );
+
+                button.disabled = false;
+                button.textContent = "Activate My Account";
+
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>
