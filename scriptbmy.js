@@ -594,6 +594,7 @@ const BMY_API = "https://yefsa-ai-backend.onrender.com";
 
 const bmyAuthScreen = $("authScreen");
 const bmyBusinessScreen = $("businessScreen");
+const bmySuperAdminScreen = $("superAdminScreen");
 const bmySidebar = $("sidebar");
 const bmyMain = document.querySelector("main");
 
@@ -601,18 +602,30 @@ const BMY_TOKEN_KEY = "bmy_auth_token";
 const BMY_BUSINESSES_KEY = "bmy_businesses";
 const BMY_SELECTED_KEY = "bmy_selected_business";
 const BMY_PASSWORD_CHANGE_KEY = "bmy_must_change_password";
+const BMY_SUPER_ADMIN_KEY = "bmy_is_super_admin";
 
 
 /* ==========================================
-   16. SHOW LOGIN SCREEN
+   16. SCREEN NAVIGATION
 ========================================== */
 
-function bmyShowLogin() {
-
-    bmyAuthScreen.hidden = false;
+function bmyHideAllScreens() {
+    bmyAuthScreen.hidden = true;
     bmyBusinessScreen.hidden = true;
+
+    if (bmySuperAdminScreen) {
+        bmySuperAdminScreen.hidden = true;
+    }
+
     bmySidebar.hidden = true;
     bmyMain.hidden = true;
+}
+
+
+function bmyShowLogin() {
+    bmyHideAllScreens();
+
+    bmyAuthScreen.hidden = false;
 
     const panel = $("bmyPasswordChangePanel");
 
@@ -641,15 +654,13 @@ function bmyShowLogin() {
 
 
 /* ==========================================
-   17. SHOW MANDATORY PASSWORD CHANGE
+   17. SHOW PASSWORD CHANGE SCREEN
 ========================================== */
 
 function bmyShowPasswordChange() {
+    bmyHideAllScreens();
 
     bmyAuthScreen.hidden = false;
-    bmyBusinessScreen.hidden = true;
-    bmySidebar.hidden = true;
-    bmyMain.hidden = true;
 
     $("loginForm").hidden = true;
     $("registerForm").hidden = true;
@@ -670,7 +681,6 @@ function bmyShowPasswordChange() {
     let panel = $("bmyPasswordChangePanel");
 
     if (!panel) {
-
         panel = document.createElement("div");
 
         panel.id = "bmyPasswordChangePanel";
@@ -755,11 +765,92 @@ function bmyShowPasswordChange() {
 
 
 /* ==========================================
-   18. HANDLE PASSWORD CHANGE
+   18. BACKEND REQUEST FUNCTION
+========================================== */
+
+async function bmyRequest(path, options = {}) {
+    const token = sessionStorage.getItem(BMY_TOKEN_KEY);
+
+    const response = await fetch(BMY_API + path, {
+        ...options,
+
+        headers: {
+            "Content-Type": "application/json",
+
+            ...(token
+                ? {
+                    "Authorization": "Bearer " + token
+                }
+                : {}),
+
+            ...(options.headers || {})
+        }
+    });
+
+    let result;
+
+    try {
+        result = await response.json();
+    } catch {
+        throw new Error(
+            "The server returned an invalid response."
+        );
+    }
+
+    if (!response.ok) {
+        const error = new Error(
+            result.error || "Request could not be completed."
+        );
+
+        error.status = response.status;
+        error.code = result.code;
+
+        throw error;
+    }
+
+    return result;
+}
+
+
+/* ==========================================
+   19. CONTINUE AFTER LOGIN
+========================================== */
+
+function bmyContinueAfterLogin() {
+    const mustChangePassword =
+        sessionStorage.getItem(BMY_PASSWORD_CHANGE_KEY) === "true";
+
+    const isSuperAdmin =
+        sessionStorage.getItem(BMY_SUPER_ADMIN_KEY) === "true";
+
+    if (mustChangePassword) {
+        bmyShowPasswordChange();
+        return;
+    }
+
+    if (isSuperAdmin) {
+        bmyShowSuperAdmin();
+        return;
+    }
+
+    const businesses = JSON.parse(
+        sessionStorage.getItem(BMY_BUSINESSES_KEY) || "[]"
+    );
+
+    if (businesses.length) {
+        bmyShowBusinesses(businesses);
+    } else {
+        toast("No active business account was found.");
+        bmyLogout();
+    }
+}
+
+
+/* ==========================================
+   20. HANDLE PASSWORD CHANGE
 ========================================== */
 
 async function bmyHandlePasswordChange(event) {
-
     event.preventDefault();
 
     const currentPassword = $("bmyCurrentPassword").value;
@@ -772,42 +863,34 @@ async function bmyHandlePasswordChange(event) {
     errorBox.hidden = true;
 
     if (newPassword.length < 8) {
-
         errorBox.textContent =
             "Your new password must contain at least 8 characters.";
 
         errorBox.hidden = false;
-
         return;
     }
 
     if (newPassword.length > 128) {
-
         errorBox.textContent =
             "Your new password is too long.";
 
         errorBox.hidden = false;
-
         return;
     }
 
     if (newPassword !== confirmPassword) {
-
         errorBox.textContent =
             "The new passwords do not match.";
 
         errorBox.hidden = false;
-
         return;
     }
 
     if (currentPassword === newPassword) {
-
         errorBox.textContent =
             "Your new password must be different from the temporary password.";
 
         errorBox.hidden = false;
-
         return;
     }
 
@@ -815,58 +898,34 @@ async function bmyHandlePasswordChange(event) {
     button.textContent = "Updating password...";
 
     try {
-
         await bmyRequest("/bmy/account/change-password", {
-
             method: "POST",
 
             body: JSON.stringify({
-
                 current_password: currentPassword,
-
                 new_password: newPassword,
-
                 confirm_password: confirmPassword
-
             })
-
         });
 
-        // Clear the temporary-password requirement.
-
         sessionStorage.removeItem(BMY_PASSWORD_CHANGE_KEY);
-
-        // Clear all password fields.
 
         $("bmyPasswordChangeForm").reset();
 
         toast("Password changed successfully.");
 
-        // Continue to business selection.
+        // Super Admins must continue to the admin dashboard.
+        // Ordinary users continue to business selection.
 
-        const businesses = JSON.parse(
-            sessionStorage.getItem(BMY_BUSINESSES_KEY) || "[]"
-        );
-
-        if (businesses.length) {
-
-            bmyShowBusinesses(businesses);
-
-        } else {
-
-            bmyLogout();
-        }
+        bmyContinueAfterLogin();
 
     } catch (error) {
-
         console.error("BMY password change error:", error);
 
         errorBox.textContent = error.message;
-
         errorBox.hidden = false;
 
     } finally {
-
         button.disabled = false;
         button.textContent = "Change password";
     }
@@ -874,13 +933,10 @@ async function bmyHandlePasswordChange(event) {
 
 
 /* ==========================================
-   19. SHOW BUSINESS SELECTION
+   21. SHOW BUSINESS SELECTION
 ========================================== */
 
 function bmyShowBusinesses(businesses) {
-
-    // Never allow business selection before password change.
-
     if (
         sessionStorage.getItem(BMY_PASSWORD_CHANGE_KEY) === "true"
     ) {
@@ -888,22 +944,18 @@ function bmyShowBusinesses(businesses) {
         return;
     }
 
-    bmyAuthScreen.hidden = true;
+    bmyHideAllScreens();
+
     bmyBusinessScreen.hidden = false;
-    bmySidebar.hidden = true;
-    bmyMain.hidden = true;
 
     const list = $("businessList");
 
-    if (!businesses.length) {
-
+    if (!Array.isArray(businesses) || !businesses.length) {
         list.innerHTML = "<p>No active businesses found.</p>";
-
         return;
     }
 
     list.innerHTML = businesses.map((business, index) => `
-
         <button
             class="business-option"
             type="button"
@@ -922,13 +974,10 @@ function bmyShowBusinesses(businesses) {
             <span>›</span>
 
         </button>
-
     `).join("");
 
     list.querySelectorAll("[data-business-index]").forEach(button => {
-
         button.addEventListener("click", () => {
-
             const business = businesses[
                 Number(button.dataset.businessIndex)
             ];
@@ -940,60 +989,301 @@ function bmyShowBusinesses(businesses) {
 
 
 /* ==========================================
-   20. BACKEND REQUEST FUNCTION
+   22. SHOW SUPER ADMIN DASHBOARD
 ========================================== */
 
-async function bmyRequest(path, options = {}) {
-
-    const token = sessionStorage.getItem(BMY_TOKEN_KEY);
-
-    const response = await fetch(BMY_API + path, {
-
-        ...options,
-
-        headers: {
-
-            "Content-Type": "application/json",
-
-            ...(token ? {
-                "Authorization": "Bearer " + token
-            } : {}),
-
-            ...(options.headers || {})
-        }
-    });
-
-    let result;
-
-    try {
-
-        result = await response.json();
-
-    } catch {
-
-        throw new Error(
-            "The server returned an invalid response."
-        );
+function bmyShowSuperAdmin() {
+    if (
+        sessionStorage.getItem(BMY_PASSWORD_CHANGE_KEY) === "true"
+    ) {
+        bmyShowPasswordChange();
+        return;
     }
 
-    if (!response.ok) {
-
-        const error = new Error(
-            result.error || "Request could not be completed."
+    if (!bmySuperAdminScreen) {
+        console.error(
+            "Super Admin screen is missing from indexbmy.html."
         );
 
-        error.status = response.status;
-        error.code = result.code;
+        bmyShowLogin();
 
-        throw error;
+        toast(
+            "Super Admin screen is missing. Check the HTML dashboard section."
+        );
+
+        return;
     }
 
-    return result;
+    bmyHideAllScreens();
+
+    bmySuperAdminScreen.hidden = false;
+
+    bmyLoadSuperAdminDashboard();
 }
 
 
 /* ==========================================
-   21. LOGIN
+   23. LOAD SUPER ADMIN DASHBOARD
+========================================== */
+
+async function bmyLoadSuperAdminDashboard() {
+    const refreshButton = $("superAdminRefresh");
+
+    if (refreshButton) {
+        refreshButton.disabled = true;
+        refreshButton.textContent = "Refreshing...";
+    }
+
+    try {
+        const result = await bmyRequest(
+            "/bmy/admin/dashboard"
+        );
+
+        if (
+            result.status !== "success" ||
+            !result.dashboard
+        ) {
+            throw new Error(
+                "The Super Admin dashboard response is incomplete."
+            );
+        }
+
+        const dashboard = result.dashboard;
+
+        $("superAdminBusinessCount").textContent =
+            dashboard.total_businesses ?? 0;
+
+        $("superAdminUserCount").textContent =
+            dashboard.total_users ?? 0;
+
+        $("superAdminAdminCount").textContent =
+            dashboard.total_super_admins ?? 0;
+
+        console.log("BMY Super Admin dashboard loaded.");
+
+    } catch (error) {
+        console.error(
+            "BMY Super Admin dashboard error:",
+            error
+        );
+
+        if (
+            error.code === "password_change_required"
+        ) {
+            sessionStorage.setItem(
+                BMY_PASSWORD_CHANGE_KEY,
+                "true"
+            );
+
+            bmyShowPasswordChange();
+            return;
+        }
+
+        if (
+            error.status === 401 ||
+            error.status === 403
+        ) {
+            bmyLogout();
+            return;
+        }
+
+        toast(
+            error.message || "Could not load Super Admin dashboard."
+        );
+
+    } finally {
+        if (refreshButton) {
+            refreshButton.disabled = false;
+            refreshButton.textContent = "Refresh";
+        }
+    }
+}
+
+
+/* ==========================================
+   24. CREATE BUSINESS
+========================================== */
+
+async function bmyCreateBusiness(event) {
+    event.preventDefault();
+
+    const form = $("superAdminBusinessForm");
+    const button = $("superAdminCreateButton");
+    const errorBox = $("superAdminError");
+    const resultBox = $("superAdminResult");
+    const resultDetails = $("superAdminResultDetails");
+
+    errorBox.hidden = true;
+    resultBox.hidden = true;
+    resultDetails.textContent = "";
+
+    const businessName =
+        $("superAdminBusinessName").value.trim();
+
+    const businessType =
+        $("superAdminBusinessType").value;
+
+    const ownerName =
+        $("superAdminOwnerName").value.trim();
+
+    const ownerEmail =
+        $("superAdminOwnerEmail").value.trim();
+
+    const businessEmail =
+        $("superAdminBusinessEmail").value.trim();
+
+    const businessPhone =
+        $("superAdminBusinessPhone").value.trim();
+
+    const businessAddress =
+        $("superAdminBusinessAddress").value.trim();
+
+    const currency =
+        $("superAdminCurrency").value;
+
+    if (!businessName || !ownerName || !ownerEmail) {
+        errorBox.textContent =
+            "Business name, owner name and owner email are required.";
+
+        errorBox.hidden = false;
+        return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Creating business...";
+
+    try {
+        const result = await bmyRequest(
+            "/bmy/admin/businesses",
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+                    business_name: businessName,
+                    business_type: businessType,
+                    owner_full_name: ownerName,
+                    owner_email: ownerEmail,
+                    business_email: businessEmail,
+                    business_phone: businessPhone,
+                    business_address: businessAddress,
+                    currency
+                })
+            }
+        );
+
+        if (
+            result.status !== "success" ||
+            !result.business ||
+            !result.owner
+        ) {
+            throw new Error(
+                result.message || "Business creation response was incomplete."
+            );
+        }
+
+        form.reset();
+
+        resultBox.hidden = false;
+
+        const heading = document.createElement("h3");
+        heading.textContent = "Business created successfully";
+
+        const message = document.createElement("p");
+        message.textContent =
+            result.message || "Business and owner account created.";
+
+        const businessInfo = document.createElement("p");
+        businessInfo.textContent =
+            `Business: ${result.business.business_name} (ID: ${result.business.business_id})`;
+
+        const ownerInfo = document.createElement("p");
+        ownerInfo.textContent =
+            `Owner: ${result.owner.full_name} (${result.owner.email})`;
+
+        const statusInfo = document.createElement("p");
+        statusInfo.textContent =
+            `Account status: ${result.owner.account_status || "pending"}`;
+
+        const emailInfo = document.createElement("p");
+
+        emailInfo.textContent = result.email_sent
+            ? "Activation email sent to the owner."
+            : "Business created, but the activation email was not sent. Check the email service configuration.";
+
+        resultDetails.append(
+            heading,
+            message,
+            businessInfo,
+            ownerInfo,
+            statusInfo,
+            emailInfo
+        );
+
+        toast("Business created successfully.");
+
+        // Refresh platform totals after successful creation.
+        await bmyLoadSuperAdminDashboard();
+
+    } catch (error) {
+        console.error(
+            "BMY business creation error:",
+            error
+        );
+
+        errorBox.textContent = error.message;
+        errorBox.hidden = false;
+
+        if (
+            error.code === "password_change_required"
+        ) {
+            sessionStorage.setItem(
+                BMY_PASSWORD_CHANGE_KEY,
+                "true"
+            );
+
+            bmyShowPasswordChange();
+        } else if (
+            error.status === 401 ||
+            error.status === 403
+        ) {
+            bmyLogout();
+        }
+
+    } finally {
+        button.disabled = false;
+        button.textContent = "Create business";
+    }
+}
+
+
+/* ==========================================
+   25. SUPER ADMIN EVENT LISTENERS
+========================================== */
+
+if ($("superAdminRefresh")) {
+    $("superAdminRefresh").addEventListener(
+        "click",
+        bmyLoadSuperAdminDashboard
+    );
+}
+
+if ($("superAdminLogout")) {
+    $("superAdminLogout").addEventListener(
+        "click",
+        bmyLogout
+    );
+}
+
+if ($("superAdminBusinessForm")) {
+    $("superAdminBusinessForm").addEventListener(
+        "submit",
+        bmyCreateBusiness
+    );
+}
+
+
+/* ==========================================
+   26. LOGIN AND AUTHENTICATION
 ========================================== */
 
 // Public registration is disabled.
@@ -1006,7 +1296,6 @@ let authMode = "login";
 
 
 function bmySetAuthMode(mode) {
-
     authMode = mode;
 
     $("loginForm").hidden = false;
@@ -1043,16 +1332,14 @@ if (authSwitchText) {
 }
 
 
-// Save authentication and business information.
+// Save authentication and account information.
 
 function bmySaveAuthSession(response) {
-
     if (
         response.status !== "success" ||
         !response.token ||
         !Array.isArray(response.businesses)
     ) {
-
         console.error(
             "Unexpected BMY authentication response:",
             response
@@ -1073,17 +1360,19 @@ function bmySaveAuthSession(response) {
         JSON.stringify(response.businesses)
     );
 
+    sessionStorage.setItem(
+        BMY_SUPER_ADMIN_KEY,
+        response.is_super_admin === true ? "true" : "false"
+    );
+
     sessionStorage.removeItem(BMY_SELECTED_KEY);
 
     if (response.must_change_password === true) {
-
         sessionStorage.setItem(
             BMY_PASSWORD_CHANGE_KEY,
             "true"
         );
-
     } else {
-
         sessionStorage.removeItem(
             BMY_PASSWORD_CHANGE_KEY
         );
@@ -1094,7 +1383,6 @@ function bmySaveAuthSession(response) {
 // LOGIN
 
 $("loginForm").addEventListener("submit", async event => {
-
     event.preventDefault();
 
     const button = $("loginButton");
@@ -1109,40 +1397,31 @@ $("loginForm").addEventListener("submit", async event => {
     button.textContent = "Signing in...";
 
     try {
+        const response = await bmyRequest(
+            "/bmy/auth/login",
+            {
+                method: "POST",
 
-        const response = await bmyRequest("/bmy/auth/login", {
-
-            method: "POST",
-
-            body: JSON.stringify({
-                email,
-                password
-            })
-
-        });
+                body: JSON.stringify({
+                    email,
+                    password
+                })
+            }
+        );
 
         bmySaveAuthSession(response);
 
         $("loginPassword").value = "";
 
-        if (response.must_change_password === true) {
-
-            bmyShowPasswordChange();
-
-        } else {
-
-            bmyShowBusinesses(response.businesses);
-        }
+        bmyContinueAfterLogin();
 
     } catch (error) {
-
         console.error("BMY login error:", error);
 
         errorBox.textContent = error.message;
         errorBox.hidden = false;
 
     } finally {
-
         button.disabled = false;
         button.textContent = "Sign in";
     }
@@ -1150,11 +1429,10 @@ $("loginForm").addEventListener("submit", async event => {
 
 
 /* ==========================================
-   22. SELECT BUSINESS
+   27. SELECT BUSINESS
 ========================================== */
 
 async function bmySelectBusiness(business) {
-
     if (
         sessionStorage.getItem(BMY_PASSWORD_CHANGE_KEY) === "true"
     ) {
@@ -1169,9 +1447,6 @@ async function bmySelectBusiness(business) {
     });
 
     try {
-
-        // Verify membership access.
-
         await bmyRequest(
             `/bmy/account/business/${business.business_id}/access`
         );
@@ -1184,11 +1459,12 @@ async function bmySelectBusiness(business) {
         bmyOpenWorkspace(business);
 
     } catch (error) {
-
-        console.error("BMY business selection error:", error);
+        console.error(
+            "BMY business selection error:",
+            error
+        );
 
         if (error.code === "password_change_required") {
-
             sessionStorage.setItem(
                 BMY_PASSWORD_CHANGE_KEY,
                 "true"
@@ -1196,12 +1472,13 @@ async function bmySelectBusiness(business) {
 
             bmyShowPasswordChange();
 
-        } else if (error.status === 401 || error.status === 403) {
-
+        } else if (
+            error.status === 401 ||
+            error.status === 403
+        ) {
             bmyLogout();
 
         } else {
-
             toast(error.message);
 
             bmyShowBusinesses(
@@ -1215,11 +1492,10 @@ async function bmySelectBusiness(business) {
 
 
 /* ==========================================
-   23. LOAD LIVE DASHBOARD DATA
+   28. LOAD LIVE BUSINESS DASHBOARD
 ========================================== */
 
 async function bmyLoadDashboard() {
-
     const business = JSON.parse(
         sessionStorage.getItem(BMY_SELECTED_KEY) || "null"
     );
@@ -1227,7 +1503,6 @@ async function bmyLoadDashboard() {
     if (!business) return;
 
     try {
-
         const result = await bmyRequest(
             `/bmy/business/${business.business_id}/dashboard`
         );
@@ -1239,16 +1514,15 @@ async function bmyLoadDashboard() {
             !result.customers ||
             !result.products
         ) {
-
             throw new Error(
                 "The dashboard response is incomplete."
             );
         }
 
-        const currency = result.business.currency || "UGX";
+        const currency =
+            result.business.currency || "UGX";
 
         function money(amount) {
-
             return `${currency} ${Number(amount || 0).toLocaleString()}`;
         }
 
@@ -1289,9 +1563,7 @@ async function bmyLoadDashboard() {
             : [];
 
         if (recentSales.length) {
-
             $("recent").innerHTML = recentSales.map(sale => {
-
                 const saleDate = new Date(sale.sale_date);
 
                 const formattedDate = isNaN(saleDate.getTime())
@@ -1299,44 +1571,45 @@ async function bmyLoadDashboard() {
                     : saleDate.toLocaleDateString();
 
                 return `
-
                     <tr>
-
                         <td>Sale #${safe(sale.sale_id)}</td>
-
                         <td>${safe(formattedDate)}</td>
-
                         <td>${safe(sale.payment_status || "Sale")}</td>
-
                         <td>${safe(money(sale.total_amount))}</td>
-
                     </tr>
-
                 `;
-
             }).join("");
 
         } else {
-
             $("recent").innerHTML =
                 '<tr><td colspan="4" class="empty">No transactions yet.</td></tr>';
         }
 
-        console.log("BMY dashboard loaded from backend.");
+        console.log(
+            "BMY business dashboard loaded from backend."
+        );
 
     } catch (error) {
-
-        console.error("BMY dashboard error:", error);
+        console.error(
+            "BMY business dashboard error:",
+            error
+        );
 
         if (error.code === "password_change_required") {
-
             sessionStorage.setItem(
                 BMY_PASSWORD_CHANGE_KEY,
                 "true"
             );
 
             bmyShowPasswordChange();
+            return;
+        }
 
+        if (
+            error.status === 401 ||
+            error.status === 403
+        ) {
+            bmyLogout();
             return;
         }
 
@@ -1346,11 +1619,10 @@ async function bmyLoadDashboard() {
 
 
 /* ==========================================
-   24. OPEN BUSINESS WORKSPACE
+   29. OPEN BUSINESS WORKSPACE
 ========================================== */
 
 function bmyOpenWorkspace(business) {
-
     if (
         sessionStorage.getItem(BMY_PASSWORD_CHANGE_KEY) === "true"
     ) {
@@ -1358,20 +1630,26 @@ function bmyOpenWorkspace(business) {
         return;
     }
 
-    bmyAuthScreen.hidden = true;
-    bmyBusinessScreen.hidden = true;
+    bmyHideAllScreens();
+
     bmySidebar.hidden = false;
     bmyMain.hidden = false;
 
     const workspace = document.querySelector(".workspace");
 
     if (workspace) {
+        const nameElement = workspace.querySelector("strong");
+        const typeElement = workspace.querySelector("small");
 
-        workspace.querySelector("strong").textContent =
-            business.business_name;
+        if (nameElement) {
+            nameElement.textContent =
+                business.business_name;
+        }
 
-        workspace.querySelector("small").textContent =
-            business.business_type || "Business account";
+        if (typeElement) {
+            typeElement.textContent =
+                business.business_type || "Business account";
+        }
     }
 
     const logoutButton = $("bmyLogout");
@@ -1387,18 +1665,15 @@ function bmyOpenWorkspace(business) {
 
 
 /* ==========================================
-   25. LOGOUT
+   30. LOGOUT
 ========================================== */
 
 function bmyLogout() {
-
     sessionStorage.removeItem(BMY_TOKEN_KEY);
-
     sessionStorage.removeItem(BMY_BUSINESSES_KEY);
-
     sessionStorage.removeItem(BMY_SELECTED_KEY);
-
     sessionStorage.removeItem(BMY_PASSWORD_CHANGE_KEY);
+    sessionStorage.removeItem(BMY_SUPER_ADMIN_KEY);
 
     $("loginPassword").value = "";
 
@@ -1411,58 +1686,64 @@ function bmyLogout() {
 
 
 /* ==========================================
-   26. CREATE LOGOUT BUTTON
+   31. CREATE BUSINESS WORKSPACE LOGOUT
 ========================================== */
 
 const bmyLogoutButton = document.createElement("button");
 
 bmyLogoutButton.id = "bmyLogout";
-
 bmyLogoutButton.className = "nav";
-
 bmyLogoutButton.type = "button";
-
 bmyLogoutButton.textContent = "↪ Sign out";
 
-bmyLogoutButton.addEventListener("click", bmyLogout);
-
-document.querySelector(".side-bottom").appendChild(
-    bmyLogoutButton
+bmyLogoutButton.addEventListener(
+    "click",
+    bmyLogout
 );
+
+const sideBottom = document.querySelector(".side-bottom");
+
+if (sideBottom) {
+    sideBottom.appendChild(bmyLogoutButton);
+}
 
 
 /* ==========================================
-   27. RESTORE EXISTING SESSION
+   32. RESTORE EXISTING SESSION
 ========================================== */
 
 async function bmyRestoreSession() {
-
     const token = sessionStorage.getItem(BMY_TOKEN_KEY);
 
     if (!token) {
-
         bmyShowLogin();
-
         return;
     }
 
-    // Restore the mandatory password-change screen first.
+    // Password change always takes priority.
 
     if (
         sessionStorage.getItem(BMY_PASSWORD_CHANGE_KEY) === "true"
     ) {
-
         bmyShowPasswordChange();
-
         return;
     }
+
+    // Restore Super Admin directly to the admin dashboard.
+
+    if (
+        sessionStorage.getItem(BMY_SUPER_ADMIN_KEY) === "true"
+    ) {
+        bmyShowSuperAdmin();
+        return;
+    }
+
+    // Restore an already selected business.
 
     const selected = sessionStorage.getItem(BMY_SELECTED_KEY);
 
     if (selected) {
-
         try {
-
             const business = JSON.parse(selected);
 
             await bmyRequest(
@@ -1470,32 +1751,29 @@ async function bmyRestoreSession() {
             );
 
             bmyOpenWorkspace(business);
-
             return;
 
         } catch (error) {
-
             console.error(
                 "BMY session verification error:",
                 error
             );
 
             if (error.code === "password_change_required") {
-
                 sessionStorage.setItem(
                     BMY_PASSWORD_CHANGE_KEY,
                     "true"
                 );
 
                 bmyShowPasswordChange();
-
                 return;
             }
 
-            if (error.status === 401 || error.status === 403) {
-
+            if (
+                error.status === 401 ||
+                error.status === 403
+            ) {
                 bmyLogout();
-
                 return;
             }
 
@@ -1504,28 +1782,26 @@ async function bmyRestoreSession() {
             );
 
             bmyShowLogin();
-
             return;
         }
     }
+
+    // Otherwise show the user's available businesses.
 
     const businesses = JSON.parse(
         sessionStorage.getItem(BMY_BUSINESSES_KEY) || "[]"
     );
 
     if (businesses.length) {
-
         bmyShowBusinesses(businesses);
-
     } else {
-
         bmyLogout();
     }
 }
 
 
 /* ==========================================
-   28. START BMY APPLICATION
+   33. START BMY APPLICATION
 ========================================== */
 
 bmyRestoreSession();
