@@ -1,38 +1,65 @@
 
-/* =================================
-   YEFSATECH: MIDNIGHT GOLD THEME
-================================= */
+/* ==========================================
+   YEFSATECH - YEFSA AI
+   OFFICIAL CYAN / BLUE BRAND THEME
+========================================== */
 
 * {
     box-sizing: border-box;
 }
 
 :root {
-    --background: #070812;
-    --surface: #101326;
-    --surface-light: #171b35;
-    --purple: #9b5cff;
-    --blue: #438cff;
-    --cyan: #40d9ff;
-    --gold: #D4AF37;
-    --text: #f3f4ff;
-    --muted: #9299b5;
-    --border: rgba(155, 92, 255, 0.22);
+    color-scheme: dark;
+
+    --background: #030B20;
+    --surface: #07152E;
+    --surface-light: #0D2040;
+    --surface-hover: #142B50;
+
+    --cyan: #00D9E8;
+    --blue: #087BFF;
+    --indigo: #493DDF;
+
+    --text: #F5F8FF;
+    --muted: #A4B3CC;
+
+    --border: rgba(0, 180, 255, 0.20);
+    --gradient: linear-gradient(
+        135deg,
+        var(--cyan),
+        var(--blue),
+        var(--indigo)
+    );
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
 }
 
 body {
     margin: 0;
     min-height: 100vh;
-    font-family: Arial, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
     background:
-        radial-gradient(ellipse at 15% 10%, rgba(91, 48, 180, 0.18), transparent 40%),
-        radial-gradient(ellipse at 90% 65%, rgba(28, 102, 190, 0.13), transparent 40%),
+        radial-gradient(
+            ellipse at 15% 5%,
+            rgba(8, 123, 255, 0.17),
+            transparent 42%
+        ),
+        radial-gradient(
+            ellipse at 90% 75%,
+            rgba(73, 61, 223, 0.13),
+            transparent 45%
+        ),
         var(--background);
     color: var(--text);
     overflow-x: hidden;
 }
 
-/* Ambient glitter */
+/* Ambient background */
 
 body::before {
     content: "";
@@ -41,21 +68,38 @@ body::before {
     pointer-events: none;
     z-index: -1;
     background-image:
-        radial-gradient(1px 1px at 10% 20%, #ffffff80 50%, transparent 100%),
-        radial-gradient(2px 2px at 75% 15%, #a78bfa80 50%, transparent 100%),
-        radial-gradient(1px 1px at 40% 70%, #40d9ff70 50%, transparent 100%),
-        radial-gradient(1px 1px at 85% 85%, #ffffff70 50%, transparent 100%),
-        radial-gradient(2px 2px at 25% 90%, #9b5cff70 50%, transparent 100%);
-    background-size: 300px 300px;
-    animation: starGlow 8s ease-in-out infinite alternate;
+        radial-gradient(
+            1px 1px at 10% 20%,
+            #ffffff60 50%,
+            transparent 100%
+        ),
+        radial-gradient(
+            2px 2px at 75% 15%,
+            #00D9E860 50%,
+            transparent 100%
+        ),
+        radial-gradient(
+            1px 1px at 40% 70%,
+            #087BFF70 50%,
+            transparent 100%
+        ),
+        radial-gradient(
+            1px 1px at 85% 85%,
+            #ffffff50 50%,
+            transparent 100%
+        );
+    background-size: 320px 320px;
+    animation: ambientGlow 9s ease-in-out infinite alternate;
 }
 
-@keyframes starGlow {
-    from { opacity: 0.35; }
-    to { opacity: 0.85; }
+@keyframes ambientGlow {
+    from {
+        opacity: 0.25;
+    }
+    to {
+        opacity: 0.75;
+    }
 }
-
-/* Screen visibility */
 
 [hidden] {
     display: none !important;
@@ -65,16 +109,16 @@ body::before {
     min-height: 100vh;
 }
 
-/* =================================
-   YEFSATECH HOME SCREEN
-================================= */
+/* ==========================================
+   HOME SCREEN
+========================================== */
 
 #homeScreen {
     width: 100%;
     max-width: 850px;
     min-height: 100vh;
     margin: 0 auto;
-    padding: 65px 22px 25px;
+    padding: 50px 22px 25px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -82,55 +126,63 @@ body::before {
 
 #welcomeGreeting {
     margin: 0 0 35px;
-    color: var(--gold);
-    font-size: clamp(27px, 6vw, 38px);
+    color: var(--cyan);
+    font-size: clamp(27px, 6vw, 36px);
     font-weight: 800;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.2px;
     text-align: center;
-    text-shadow:
-        0 0 8px rgba(212, 175, 55, 0.35),
-        0 0 22px rgba(212, 175, 55, 0.15);
+    text-shadow: 0 0 22px rgba(0, 217, 232, 0.25);
 }
 
 .home-features {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 13px;
     width: 100%;
+    max-width: 650px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    justify-content: center;
+    align-items: stretch;
 }
-
-/* Feature cards */
 
 #openYefsaAiBtn,
 #openBmyBtn {
     min-width: 0;
     min-height: 125px;
-    padding: 18px 13px;
+    padding: 18px 14px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
     text-align: left;
     border-radius: 17px;
-    border: 1px solid rgba(255, 255, 255, 0.10);
+    border: 1px solid var(--border);
     transition: 0.25s ease;
 }
 
 #openYefsaAiBtn {
-    background: linear-gradient(145deg, #17294a, #10182d);
-    border-color: rgba(67, 140, 255, 0.35);
-    box-shadow: 0 8px 24px rgba(25, 75, 150, 0.13);
+    background: linear-gradient(
+        145deg,
+        #102D55,
+        #091A36
+    );
+    border-color: rgba(0, 217, 232, 0.35);
+    box-shadow: 0 8px 25px rgba(8, 123, 255, 0.12);
 }
 
 #openBmyBtn {
-    background: linear-gradient(145deg, #153b32, #10251f);
-    border-color: rgba(57, 170, 120, 0.30);
-    box-shadow: 0 8px 24px rgba(20, 110, 75, 0.12);
+    background: linear-gradient(
+        145deg,
+        #152D58,
+        #0A1937
+    );
+    border-color: rgba(73, 61, 223, 0.4);
+    box-shadow: 0 8px 25px rgba(73, 61, 223, 0.12);
 }
 
 #openYefsaAiBtn:hover,
 #openBmyBtn:hover {
-    filter: brightness(1.15);
+    filter: brightness(1.2);
     transform: translateY(-3px);
 }
 
@@ -138,7 +190,7 @@ body::before {
 #openBmyBtn strong {
     display: block;
     margin-bottom: 8px;
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 800;
     color: white;
 }
@@ -146,23 +198,23 @@ body::before {
 #openYefsaAiBtn span,
 #openBmyBtn span {
     display: block;
-    color: #c2c9dc;
-    font-size: 12px;
+    color: #BDCCE5;
+    font-size: 13px;
     line-height: 1.5;
     font-weight: normal;
 }
 
 .home-footer {
     margin-top: 45px;
-    color: #777d96;
-    font-size: 10px;
-    letter-spacing: 3px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 2px;
     text-align: center;
 }
 
-/* =================================
+/* ==========================================
    APP HEADERS
-================================= */
+========================================== */
 
 header,
 .app-header {
@@ -173,10 +225,13 @@ header,
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    background: rgba(8, 10, 25, 0.88);
+    gap: 12px;
+    padding: 15px 20px;
+
+    background: rgba(3, 11, 32, 0.92);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
+
     border-bottom: 1px solid var(--border);
     color: white;
 }
@@ -184,43 +239,47 @@ header,
 header h1,
 .app-header h1 {
     margin: 0;
-    font-size: 23px;
+    font-size: 22px;
     font-weight: 800;
-    letter-spacing: 1px;
-    color: #c39aff;
-    text-shadow: 0 0 15px rgba(155, 92, 255, 0.65);
+    letter-spacing: 0.3px;
+    color: var(--cyan);
+    text-shadow: 0 0 15px rgba(0, 217, 232, 0.25);
 }
 
 header p {
     margin-bottom: 0;
     color: var(--muted);
+    font-size: 14px;
 }
 
 /* Back buttons */
 
 #backHomeFromChatBtn,
 #backHomeFromBmyBtn {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(8, 123, 255, 0.12);
     color: white;
-    padding: 9px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 9px 13px;
+    border: 1px solid var(--border);
     border-radius: 10px;
     font-size: 14px;
 }
 
-/* =================================
+/* ==========================================
    BMY SCREEN
-================================= */
+========================================== */
 
 .bmy-screen {
     background:
-        radial-gradient(ellipse at 50% 20%, rgba(24, 105, 75, 0.13), transparent 55%),
+        radial-gradient(
+            ellipse at 50% 20%,
+            rgba(8, 123, 255, 0.10),
+            transparent 55%
+        ),
         transparent;
 }
 
 .bmy-screen .app-header h1 {
-    color: var(--gold);
-    text-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+    color: var(--cyan);
 }
 
 .bmy-welcome {
@@ -231,25 +290,26 @@ header p {
 }
 
 .bmy-welcome h2 {
-    color: var(--gold);
+    color: var(--cyan);
     font-size: 25px;
     margin-bottom: 12px;
 }
 
 .bmy-welcome p {
     color: var(--muted);
-    line-height: 1.6;
+    line-height: 1.7;
+    font-size: 15px;
 }
 
-/* =================================
+/* ==========================================
    CHAT LAYOUT
-================================= */
+========================================== */
 
 .chat-container {
     width: 100%;
     max-width: 850px;
-    margin: 20px auto;
-    padding: 15px 18px;
+    margin: 15px auto;
+    padding: 12px 20px 25px;
 }
 
 .chat-box {
@@ -258,7 +318,7 @@ header p {
     align-items: stretch;
     background: transparent;
     min-height: 65vh;
-    padding: 10px 0;
+    padding: 12px 0;
     border: none;
     border-radius: 0;
     box-shadow: none;
@@ -276,24 +336,26 @@ header p {
     margin-right: 0;
 }
 
-/* Message bubbles */
+/* ==========================================
+   CHAT MESSAGES
+========================================== */
 
 .message {
     width: fit-content;
-    max-width: 85%;
-    padding: 14px 17px;
-    margin: 18px 0;
-    border-radius: 18px;
-    line-height: 1.65;
-    font-size: 15px;
+    max-width: 88%;
+    padding: 13px 17px;
+    margin: 13px 0;
+    border-radius: 17px;
+    line-height: 1.7;
+    font-size: 16px;
     overflow-wrap: anywhere;
-    animation: messageArrival 0.45s ease both;
+    animation: messageArrival 0.3s ease both;
 }
 
 @keyframes messageArrival {
     from {
         opacity: 0;
-        transform: translateY(12px);
+        transform: translateY(7px);
     }
     to {
         opacity: 1;
@@ -301,18 +363,18 @@ header p {
     }
 }
 
+/* AI message */
+
 .bot {
     margin-right: auto;
-    color: #e9e7ff;
-    background: linear-gradient(
-        135deg,
-        rgba(35, 30, 67, 0.95),
-        rgba(17, 29, 55, 0.95)
-    );
-    border: 1px solid rgba(139, 111, 255, 0.3);
+    color: #EAF3FF;
+    background: rgba(10, 28, 57, 0.78);
+    border: 1px solid rgba(0, 180, 255, 0.18);
     border-bottom-left-radius: 5px;
-    box-shadow: 0 0 18px rgba(111, 70, 220, 0.09);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.10);
 }
+
+/* User message */
 
 .user {
     display: block;
@@ -321,36 +383,57 @@ header p {
     margin-left: auto;
     margin-right: 0;
     color: white;
-    background: linear-gradient(135deg, #7139c7, #315fd0);
-    border: 1px solid rgba(164, 133, 255, 0.55);
+    background: linear-gradient(
+        135deg,
+        #087BFF,
+        #493DDF
+    );
+    border: 1px solid rgba(0, 217, 232, 0.22);
     border-bottom-right-radius: 5px;
-    box-shadow: 0 0 20px rgba(102, 65, 220, 0.2);
+    box-shadow: 0 5px 20px rgba(8, 123, 255, 0.15);
+}
+
+/* Thinking indicator */
+
+.thinking {
+    animation: thinkingPulse 1s ease-in-out infinite alternate;
 }
 
 @keyframes thinkingPulse {
-    from { opacity: 0.45; }
-    to { opacity: 1; }
+    from {
+        opacity: 0.45;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
-/* =================================
+/* ==========================================
    CHAT INPUT
-================================= */
+========================================== */
 
 .input-area {
     display: flex;
     gap: 10px;
     margin-top: 18px;
-    padding: 10px;
-    background: rgba(17, 20, 42, 0.92);
-    border: 1px solid rgba(155, 92, 255, 0.35);
+    padding: 9px;
+
+    background: rgba(7, 21, 46, 0.96);
+    border: 1px solid rgba(0, 180, 255, 0.28);
     border-radius: 18px;
-    box-shadow: 0 0 22px rgba(105, 69, 205, 0.12);
+
+    box-shadow: 0 0 22px rgba(8, 123, 255, 0.09);
 }
 
-input {
+input,
+textarea {
+    font-family: inherit;
+}
+
+.input-area input {
     flex: 1;
     min-width: 0;
-    padding: 14px;
+    padding: 13px 12px;
     border: none;
     outline: none;
     border-radius: 12px;
@@ -359,36 +442,53 @@ input {
     font-size: 16px;
 }
 
-input::placeholder {
-    color: #858ba8;
+input::placeholder,
+textarea::placeholder {
+    color: #8499B8;
 }
 
+.input-area input:focus {
+    outline: none;
+}
+
+/* General buttons */
+
 button {
-    background: linear-gradient(135deg, #8c4de5, #356fe0);
+    background: var(--gradient);
     color: white;
     border: none;
-    padding: 13px 19px;
+    padding: 12px 18px;
     border-radius: 12px;
     cursor: pointer;
-    font-weight: bold;
-    transition: 0.25s ease;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    transition: 0.2s ease;
 }
 
 button:hover {
-    filter: brightness(1.2);
-    box-shadow: 0 0 16px rgba(139, 92, 246, 0.45);
+    filter: brightness(1.15);
+    box-shadow: 0 0 16px rgba(8, 123, 255, 0.28);
     transform: translateY(-1px);
 }
 
 button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+button:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 3px;
 }
 
 /* Developer button */
 
 .developer-btn {
-    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    background: var(--gradient);
     color: white;
     text-decoration: none;
     padding: 10px 14px;
@@ -397,9 +497,9 @@ button:disabled {
     font-weight: bold;
 }
 
-/* =================================
+/* ==========================================
    HAMBURGER MENU
-================================= */
+========================================== */
 
 .menu-container {
     position: relative;
@@ -410,9 +510,15 @@ button:disabled {
     background: transparent;
     color: white;
     border: none;
-    font-size: 28px;
+    font-size: 27px;
     cursor: pointer;
     padding: 5px 10px;
+    box-shadow: none;
+}
+
+.menu-btn:hover {
+    background: rgba(8, 123, 255, 0.12);
+    box-shadow: none;
 }
 
 .dropdown-menu {
@@ -420,7 +526,7 @@ button:disabled {
     top: 100%;
     right: 0;
     width: 220px;
-    background: #14172d;
+    background: #091A36;
     border: 1px solid var(--border);
     border-radius: 14px;
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
@@ -435,41 +541,48 @@ button:disabled {
     padding: 14px;
     background: transparent;
     border: none;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     color: white;
     text-align: left;
     text-decoration: none;
     font-size: 14px;
     cursor: pointer;
+    border-radius: 0;
 }
 
 .dropdown-menu button:hover,
 .dropdown-menu a:hover {
-    background: #282044;
+    background: #142B50;
+    box-shadow: none;
+    transform: none;
 }
 
 .dropdown-menu[hidden] {
     display: none !important;
 }
 
-/* =================================
+/* ==========================================
    CHAT HISTORY
-================================= */
+========================================== */
 
 .history-panel {
     position: fixed;
     top: 75px;
     left: 10px;
     right: 10px;
+    max-width: 700px;
     max-height: 75vh;
+    margin: 0 auto;
     overflow-y: auto;
-    background: #11142a;
+
+    background: #07152E;
     color: white;
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 15px;
     z-index: 3000;
-    box-shadow: 0 12px 35px rgba(0,0,0,0.6);
+
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
 }
 
 .history-panel[hidden] {
@@ -494,6 +607,7 @@ button:disabled {
     color: white;
     border: none;
     font-size: 22px;
+    box-shadow: none;
 }
 
 .history-list {
@@ -504,10 +618,10 @@ button:disabled {
 }
 
 .history-item {
-    background: #1b1e39;
+    background: #0D2040;
     padding: 13px;
     border-radius: 10px;
-    border: 1px solid rgba(155, 92, 255, 0.2);
+    border: 1px solid var(--border);
     color: white;
     cursor: pointer;
     text-align: left;
@@ -515,12 +629,12 @@ button:disabled {
 }
 
 .history-item:hover {
-    background: #29234a;
+    background: #142B50;
 }
 
 .history-item small {
     display: block;
-    color: #9299b5;
+    color: var(--muted);
     margin-top: 5px;
 }
 
@@ -546,29 +660,140 @@ button:disabled {
 }
 
 .rename-chat-btn {
-    background: #49328a;
+    background: #174C91;
 }
 
 .delete-chat-btn {
-    background: #8b263c;
+    background: #922F49;
 }
 
-/* =================================
+/* ==========================================
+   MARKDOWN FORMATTING
+========================================== */
+
+.message p {
+    margin: 7px 0;
+    line-height: 1.7;
+}
+
+.message p:first-child {
+    margin-top: 0;
+}
+
+.message p:last-child {
+    margin-bottom: 0;
+}
+
+.message strong {
+    font-weight: 750;
+    color: #FFFFFF;
+}
+
+.message em {
+    font-style: italic;
+}
+
+.message h1,
+.message h2,
+.message h3 {
+    margin: 15px 0 9px;
+    font-weight: 800;
+    line-height: 1.35;
+    color: var(--cyan);
+}
+
+.message h1 {
+    font-size: 1.4rem;
+}
+
+.message h2 {
+    font-size: 1.22rem;
+}
+
+.message h3 {
+    font-size: 1.08rem;
+}
+
+.message ul,
+.message ol {
+    padding-left: 24px;
+    margin: 9px 0;
+}
+
+.message li {
+    margin: 6px 0;
+    line-height: 1.6;
+}
+
+.message code {
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: rgba(8, 123, 255, 0.15);
+    color: #69DFFF;
+    font-family: monospace;
+    font-size: 0.92em;
+}
+
+.message pre {
+    padding: 13px;
+    border-radius: 9px;
+    overflow-x: auto;
+    max-width: 100%;
+    background: #020817;
+    border: 1px solid var(--border);
+}
+
+.message pre code {
+    padding: 0;
+    background: transparent;
+    color: #D8E9FF;
+}
+
+.message hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 14px 0;
+}
+
+/* ==========================================
+   SCROLLBARS
+========================================== */
+
+.chat-box,
+.history-panel {
+    scrollbar-width: thin;
+    scrollbar-color: #174C91 transparent;
+}
+
+.chat-box::-webkit-scrollbar,
+.history-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-box::-webkit-scrollbar-thumb,
+.history-panel::-webkit-scrollbar-thumb {
+    background: #174C91;
+    border-radius: 10px;
+}
+
+/* ==========================================
    MOBILE RESPONSIVENESS
-================================= */
+========================================== */
 
 @media (max-width: 600px) {
+
     #homeScreen {
-        padding: 45px 17px 22px;
+        padding: 40px 16px 22px;
     }
 
     #welcomeGreeting {
         margin-bottom: 28px;
-        font-size: 29px;
+        font-size: 28px;
     }
 
     .home-features {
-        gap: 10px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 11px;
     }
 
     #openYefsaAiBtn,
@@ -579,21 +804,29 @@ button:disabled {
 
     #openYefsaAiBtn strong,
     #openBmyBtn strong {
-        font-size: 18px;
+        font-size: 17px;
     }
 
     #openYefsaAiBtn span,
     #openBmyBtn span {
-        font-size: 11px;
+        font-size: 12px;
     }
 
     .home-footer {
         margin-top: 35px;
     }
 
+    .app-header {
+        padding: 13px 14px;
+    }
+
+    .app-header h1 {
+        font-size: 19px;
+    }
+
     .chat-container {
-        margin: 12px auto;
-        padding: 10px 13px;
+        margin: 10px auto;
+        padding: 9px 13px 20px;
     }
 
     .chat-box {
@@ -601,18 +834,10 @@ button:disabled {
     }
 
     .message {
-        max-width: 90%;
-        font-size: 14px;
+        max-width: 92%;
+        font-size: 16px;
         padding: 12px 14px;
-        margin: 15px 0;
-    }
-
-    .app-header {
-        padding: 14px;
-    }
-
-    .app-header h1 {
-        font-size: 20px;
+        margin: 12px 0;
     }
 
     .input-area {
@@ -620,108 +845,38 @@ button:disabled {
         padding: 7px;
     }
 
-    input {
+    .input-area input {
         padding: 12px 8px;
-        font-size: 15px;
+        font-size: 16px;
     }
 
-    button {
-        padding: 12px 15px;
+    .input-area button {
+        padding: 11px 14px;
+    }
+
+    .history-panel {
+        top: 65px;
     }
 }
 
-/* =================================
-   RESPONSIVE CENTERED FEATURE GRID
-================================= */
+/* Smaller phones */
 
-.home-features {
-    width: 100%;
-    max-width: 650px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
-    justify-content: center;
-    align-items: stretch;
-}
+@media (max-width: 360px) {
 
-@media (max-width: 600px) {
     .home-features {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
+        grid-template-columns: 1fr;
     }
+
+    .message {
+        max-width: 95%;
+    }
+
+    .app-header h1 {
+        font-size: 17px;
+    }
+
 }
 
 /* ==========================================
-   YEFSATECH MARKDOWN FORMATTING
+   END OF YEFSATECH THEME
 ========================================== */
-
-.message p {
-    margin: 6px 0;
-    line-height: 1.65;
-}
-
-.message strong {
-    font-weight: 800;
-}
-
-.message em {
-    font-style: italic;
-}
-
-.message h1,
-.message h2,
-.message h3 {
-    margin: 12px 0 8px;
-    font-weight: 800;
-    line-height: 1.35;
-}
-
-.message h1 {
-    font-size: 1.35rem;
-}
-
-.message h2 {
-    font-size: 1.2rem;
-}
-
-.message h3 {
-    font-size: 1.08rem;
-}
-
-.message ul,
-.message ol {
-    padding-left: 24px;
-    margin: 8px 0;
-}
-
-.message li {
-    margin: 5px 0;
-    line-height: 1.5;
-}
-
-.message code {
-    padding: 2px 5px;
-    border-radius: 4px;
-    background: rgba(128, 128, 128, 0.2);
-    font-family: monospace;
-}
-
-.message pre {
-    padding: 12px;
-    border-radius: 8px;
-    overflow-x: auto;
-    max-width: 100%;
-    background: rgba(128, 128, 128, 0.15);
-}
-
-.message pre code {
-    padding: 0;
-    background: transparent;
-}
-
-.message hr {
-    border: none;
-    border-top: 1px solid rgba(128, 128, 128, 0.35);
-    margin: 12px 0;
-}
