@@ -4,10 +4,13 @@
 // ==========================================
 // YEFSATECH - YEFSA AI
 // Main frontend JavaScript
+// Connected to BMY Business AI
 // ==========================================
 
 
+// ==========================================
 // 1. CONNECT HTML ELEMENTS
+// ==========================================
 
 const chatBox = document.getElementById("chatBox");
 const userInput = document.getElementById("userInput");
@@ -30,15 +33,27 @@ const developerBtn =
     document.getElementById("developerBtn");
 
 
+// ==========================================
 // 2. CONFIGURATION
+// ==========================================
+
+const API_BASE_URL =
+    "https://yefsa-ai-backend.onrender.com";
 
 const API_URL =
-    "https://yefsa-ai-backend.onrender.com/chat";
+    `${API_BASE_URL}/chat`;
 
 const MEMORY_API_URL =
-    "https://yefsa-ai-backend.onrender.com/memory";
+    `${API_BASE_URL}/memory`;
 
-const BMY_TOKEN_KEY = "bmy_auth_token";
+const BMY_AI_URL =
+    `${API_BASE_URL}/bmy/business`;
+
+const BMY_TOKEN_KEY =
+    "bmy_auth_token";
+
+const BMY_BUSINESS_KEY =
+    "bmy_selected_business";
 
 const CONVERSATIONS_KEY =
     "yefsa_ai_conversations_v1";
@@ -55,22 +70,32 @@ const MEMORY_KEY =
 const WELCOME_MESSAGE =
     "Hello! I'm Yefsa AI. How can I help you today?";
 
+const MAX_HISTORY_MESSAGES = 12;
 
+
+// ==========================================
 // 3. APPLICATION DATA
+// ==========================================
 
 let conversations = [];
 let activeChatId = null;
 
 
+// ==========================================
 // 4. GENERATE UNIQUE CHAT ID
+// ==========================================
 
 function makeId() {
+
     return Date.now().toString() +
         Math.random().toString(16).slice(2);
+
 }
 
 
+// ==========================================
 // 5. GET ACTIVE CONVERSATION
+// ==========================================
 
 function getActiveChat() {
 
@@ -81,7 +106,9 @@ function getActiveChat() {
 }
 
 
-// 6. BMY ACCOUNT AUTHENTICATION
+// ==========================================
+// 6. BMY AUTHENTICATION
+// ==========================================
 
 function getBmyToken() {
 
@@ -105,7 +132,109 @@ function getBmyToken() {
 }
 
 
+// GET THE CURRENTLY SELECTED BUSINESS
+
+function getSelectedBmyBusinessId() {
+
+    try {
+
+        const savedBusiness =
+            sessionStorage.getItem(BMY_BUSINESS_KEY);
+
+        if (!savedBusiness) {
+            return null;
+        }
+
+        let business = savedBusiness;
+
+        try {
+
+            business = JSON.parse(savedBusiness);
+
+        } catch (error) {
+
+            // It may already be a plain business ID.
+
+        }
+
+        if (
+            typeof business === "number" ||
+            typeof business === "string"
+        ) {
+
+            const id = String(business).trim();
+
+            return /^\d+$/.test(id) ? id : null;
+
+        }
+
+        if (
+            business &&
+            typeof business === "object"
+        ) {
+
+            const possibleId =
+                business.id ??
+                business.business_id ??
+                business.businessId;
+
+            if (
+                possibleId !== undefined &&
+                possibleId !== null
+            ) {
+
+                const id = String(possibleId).trim();
+
+                return /^\d+$/.test(id) ? id : null;
+
+            }
+
+        }
+
+        return null;
+
+    } catch (error) {
+
+        console.error(
+            "BMY business selection error:",
+            error
+        );
+
+        return null;
+
+    }
+
+}
+
+
+// DETECT WHETHER THE USER IS USING BMY
+
+function getBmySession() {
+
+    const token = getBmyToken();
+
+    if (!token) {
+
+        return {
+            active: false,
+            token: null,
+            businessId: null
+        };
+
+    }
+
+    return {
+        active: true,
+        token: token,
+        businessId: getSelectedBmyBusinessId()
+    };
+
+}
+
+
+// ==========================================
 // 7. LONG-TERM MEMORY
+// ==========================================
 
 function loadMemories() {
 
@@ -186,7 +315,9 @@ function addMemory(memory) {
 }
 
 
+// ==========================================
 // 8. SAVE CONVERSATIONS
+// ==========================================
 
 function saveConversations() {
 
@@ -224,7 +355,9 @@ function saveConversations() {
 }
 
 
+// ==========================================
 // 9. MARKDOWN MESSAGE RENDERER
+// ==========================================
 
 function renderFormattedMessage(container, text) {
 
@@ -254,7 +387,10 @@ function renderFormattedMessage(container, text) {
 
             let element;
 
-            if (token.startsWith("**") || token.startsWith("__")) {
+            if (
+                token.startsWith("**") ||
+                token.startsWith("__")
+            ) {
 
                 element = document.createElement("strong");
 
@@ -295,7 +431,9 @@ function renderFormattedMessage(container, text) {
     let codeContent = [];
 
     function closeList() {
+
         currentList = null;
+
     }
 
 
@@ -473,7 +611,9 @@ function renderFormattedMessage(container, text) {
 }
 
 
+// ==========================================
 // 10. MESSAGE STYLING
+// ==========================================
 
 function styleMessage(message, sender) {
 
@@ -496,7 +636,9 @@ function styleMessage(message, sender) {
 }
 
 
+// ==========================================
 // 11. ADD MESSAGE TO CHAT
+// ==========================================
 
 function addMessage(text, sender, shouldSave = true) {
 
@@ -535,7 +677,9 @@ function addMessage(text, sender, shouldSave = true) {
 }
 
 
+// ==========================================
 // 12. SAVE ACTIVE CHAT
+// ==========================================
 
 function saveActiveChat() {
 
@@ -585,7 +729,9 @@ function saveActiveChat() {
 }
 
 
+// ==========================================
 // 13. DISPLAY ACTIVE CONVERSATION
+// ==========================================
 
 function renderActiveChat() {
 
@@ -634,7 +780,9 @@ function renderActiveChat() {
 }
 
 
+// ==========================================
 // 14. CREATE NEW CHAT
+// ==========================================
 
 function startNewChat() {
 
@@ -653,7 +801,11 @@ function startNewChat() {
                 text: WELCOME_MESSAGE,
                 sender: "bot"
             }
-        ]
+        ],
+
+        // Business association is assigned
+        // when the first message is sent.
+        bmyBusinessId: null
 
     };
 
@@ -674,7 +826,9 @@ function startNewChat() {
 }
 
 
+// ==========================================
 // 15. LOAD PREVIOUS CONVERSATIONS
+// ==========================================
 
 function loadConversations() {
 
@@ -729,7 +883,9 @@ function loadConversations() {
 
                         messages: oldMessages,
 
-                        customTitle: false
+                        customTitle: false,
+
+                        bmyBusinessId: null
 
                     });
 
@@ -781,7 +937,9 @@ function loadConversations() {
 }
 
 
-// 16. SAVE MEMORY TO THE CORRECT STORAGE
+// ==========================================
+// 16. SAVE MEMORY
+// ==========================================
 
 async function rememberInformation(memory) {
 
@@ -798,7 +956,7 @@ async function rememberInformation(memory) {
     const token = getBmyToken();
 
 
-    // AUTHENTICATED BMY ACCOUNT
+    // AUTHENTICATED ACCOUNT
 
     if (token) {
 
@@ -846,7 +1004,9 @@ async function rememberInformation(memory) {
         if (!response.ok) {
 
             throw new Error(
-                data.error || "Memory saving failed."
+                data.error ||
+                data.message ||
+                "Memory saving failed."
             );
 
         }
@@ -873,7 +1033,266 @@ async function rememberInformation(memory) {
 }
 
 
-// 17. SEND MESSAGE TO YEFSA AI
+// ==========================================
+// 17. PREPARE CONVERSATION HISTORY
+// ==========================================
+
+// NORMAL YEFSA AI HISTORY FORMAT
+
+function getNormalHistory(chat) {
+
+    if (!chat || !Array.isArray(chat.messages)) {
+        return [];
+    }
+
+    return chat.messages
+
+        .filter(item =>
+            item.sender === "user" ||
+            item.sender === "bot"
+        )
+
+        .filter(item =>
+            item.text !== WELCOME_MESSAGE
+        )
+
+        .slice(-20)
+
+        .map(item => ({
+
+            role: item.sender === "user"
+                ? "user"
+                : "model",
+
+            text: item.text
+
+        }));
+
+}
+
+
+// BMY BUSINESS AI HISTORY FORMAT
+
+function getBmyHistory(chat, businessId) {
+
+    if (!chat || !Array.isArray(chat.messages)) {
+        return [];
+    }
+
+    // Never transfer conversation history
+    // between different businesses.
+
+    if (
+        chat.bmyBusinessId &&
+        String(chat.bmyBusinessId) !== String(businessId)
+    ) {
+
+        return [];
+
+    }
+
+    return chat.messages
+
+        .filter(item =>
+            item.sender === "user" ||
+            item.sender === "bot"
+        )
+
+        .filter(item =>
+            item.text !== WELCOME_MESSAGE
+        )
+
+        .slice(-MAX_HISTORY_MESSAGES)
+
+        .map(item => ({
+
+            role: item.sender === "user"
+                ? "user"
+                : "assistant",
+
+            content: String(item.text || "").slice(0, 4000)
+
+        }));
+
+}
+
+
+// ==========================================
+// 18. READ SERVER RESPONSE
+// ==========================================
+
+async function readApiResponse(response) {
+
+    const responseText = await response.text();
+
+    let data;
+
+    try {
+
+        data = JSON.parse(responseText);
+
+    } catch (error) {
+
+        throw new Error(
+            "The server returned an invalid response. HTTP " +
+            response.status
+        );
+
+    }
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            data.message ||
+            data.error ||
+            "Server error. HTTP " + response.status
+        );
+
+    }
+
+
+    if (
+        !data ||
+        typeof data.reply !== "string" ||
+        !data.reply.trim()
+    ) {
+
+        throw new Error(
+            "The server responded but did not provide an AI reply."
+        );
+
+    }
+
+    return data;
+
+}
+
+
+// ==========================================
+// 19. SEND MESSAGE TO NORMAL YEFSA AI
+// ==========================================
+
+async function sendToNormalYefsaAI(message, chat) {
+
+    const history = getNormalHistory(chat);
+
+    const requestBody = {
+
+        message: message,
+
+        history: history,
+
+        memories: loadMemories()
+
+    };
+
+
+    const response = await fetch(
+        API_URL,
+        {
+
+            method: "POST",
+
+            headers: {
+
+                "Content-Type": "application/json"
+
+            },
+
+            body: JSON.stringify(requestBody)
+
+        }
+    );
+
+
+    return await readApiResponse(response);
+
+}
+
+
+// ==========================================
+// 20. SEND MESSAGE TO BMY BUSINESS AI
+// ==========================================
+
+async function sendToBmyAI(message, chat, session) {
+
+    if (!session.token) {
+
+        throw new Error(
+            "Your BMY login session is missing. Please log in again."
+        );
+
+    }
+
+    if (!session.businessId) {
+
+        throw new Error(
+            "BMY is connected, but no business is selected. Open BMY and select a business first."
+        );
+
+    }
+
+
+    const businessId = session.businessId;
+
+    const history = getBmyHistory(
+        chat,
+        businessId
+    );
+
+
+    const endpoint =
+        `${BMY_AI_URL}/${encodeURIComponent(businessId)}/ai/chat`;
+
+
+    console.log(
+        "Sending message to BMY Business AI:",
+        endpoint
+    );
+
+
+    const response = await fetch(
+        endpoint,
+        {
+
+            method: "POST",
+
+            headers: {
+
+                "Content-Type": "application/json",
+
+                "Authorization": "Bearer " + session.token
+
+            },
+
+            body: JSON.stringify({
+
+                message: message,
+
+                history: history
+
+            })
+
+        }
+    );
+
+
+    const data = await readApiResponse(response);
+
+
+    // Remember which business owns this conversation.
+
+    chat.bmyBusinessId = businessId;
+
+    return data;
+
+}
+
+
+// ==========================================
+// 21. SEND MESSAGE TO YEFSA AI
+// ==========================================
 
 async function sendMessage() {
 
@@ -956,36 +1375,9 @@ async function sendMessage() {
     }
 
 
-    // COLLECT PREVIOUS CONVERSATION MESSAGES
-
     const activeChat = getActiveChat();
 
-    const history = activeChat
-
-        ? activeChat.messages
-
-            .filter(item =>
-                item.sender === "user" ||
-                item.sender === "bot"
-            )
-
-            .filter(item =>
-                item.text !== WELCOME_MESSAGE
-            )
-
-            .slice(-20)
-
-            .map(item => ({
-
-                role: item.sender === "user"
-                    ? "user"
-                    : "model",
-
-                text: item.text
-
-            }))
-
-        : [];
+    const bmySession = getBmySession();
 
 
     // DISPLAY USER MESSAGE
@@ -1005,123 +1397,48 @@ async function sendMessage() {
         false
     );
 
-    thinking.classList.add("thinking");
+    if (thinking) {
+
+        thinking.classList.add("thinking");
+
+    }
 
 
     try {
 
-        console.log(
-            "Sending request to:",
-            API_URL
-        );
-
-
-        // GET CURRENT BMY AUTHENTICATION TOKEN
-
-        const token = getBmyToken();
-
-
-        // PREPARE REQUEST HEADERS
-
-        const headers = {
-
-            "Content-Type": "application/json"
-
-        };
-
-        if (token) {
-
-            headers["Authorization"] =
-                "Bearer " + token;
-
-        }
-
-
-        // PREPARE REQUEST BODY
-
-        const requestBody = {
-
-            message: message,
-
-            history: history,
-
-            memories: token
-                ? []
-                : loadMemories()
-
-        };
-
-
-        // SEND REQUEST TO FLASK BACKEND
-
-        const response = await fetch(
-            API_URL,
-            {
-
-                method: "POST",
-
-                headers: headers,
-
-                body: JSON.stringify(requestBody)
-
-            }
-        );
-
-
-        // READ BACKEND RESPONSE
-
-        const responseText = await response.text();
-
         let data;
 
-        try {
 
-            data = JSON.parse(responseText);
+        // BMY SESSION ACTIVE
 
-        } catch (parseError) {
+        if (bmySession.active) {
 
-            throw new Error(
-                "The server returned an invalid response. HTTP " +
-                response.status
+            data = await sendToBmyAI(
+                message,
+                activeChat,
+                bmySession
+            );
+
+
+            // Mark this conversation as belonging
+            // to the selected BMY business.
+
+            activeChat.bmyBusinessId =
+                bmySession.businessId;
+
+        } else {
+
+            // NORMAL YEFSA AI
+
+            data = await sendToNormalYefsaAI(
+                message,
+                activeChat
             );
 
         }
 
 
-        console.log(
-            "Backend response:",
-            data
-        );
-
-
-        // CHECK FOR BACKEND ERRORS
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.error ||
-                "Server error. HTTP " + response.status
-            );
-
-        }
-
-
-        // CHECK THAT THE REPLY EXISTS
-
-        if (
-            !data ||
-            typeof data.reply !== "string" ||
-            !data.reply.trim()
-        ) {
-
-            throw new Error(
-                "The server responded but did not provide an AI reply."
-            );
-
-        }
-
-
-        // DISPLAY FORMATTED AI RESPONSE
+        // DISPLAY AI RESPONSE
 
         renderFormattedMessage(
             thinking,
@@ -1142,8 +1459,20 @@ async function sendMessage() {
             error
         );
 
-        const errorMessage =
+        let errorMessage =
             "Connection error: " + error.message;
+
+
+        if (
+            error.message &&
+            error.message.toLowerCase().includes("login session")
+        ) {
+
+            errorMessage =
+                "Your BMY login session may have expired. Please log in to BMY again.";
+
+        }
+
 
         thinking.textContent = errorMessage;
 
@@ -1167,7 +1496,9 @@ async function sendMessage() {
 }
 
 
-// 18. OPEN AND CLOSE MENU
+// ==========================================
+// 22. OPEN AND CLOSE MENU
+// ==========================================
 
 if (menuBtn && dropdownMenu) {
 
@@ -1202,7 +1533,9 @@ if (menuBtn && dropdownMenu) {
 }
 
 
-// 19. NEW CHAT BUTTON
+// ==========================================
+// 23. NEW CHAT BUTTON
+// ==========================================
 
 if (newChatBtn) {
 
@@ -1218,7 +1551,9 @@ if (newChatBtn) {
 }
 
 
-// 20. DELETE CURRENT CHAT
+// ==========================================
+// 24. DELETE CURRENT CHAT
+// ==========================================
 
 if (deleteChatBtn) {
 
@@ -1262,7 +1597,9 @@ if (deleteChatBtn) {
 }
 
 
-// 21. DISPLAY CHAT HISTORY
+// ==========================================
+// 25. DISPLAY CHAT HISTORY
+// ==========================================
 
 function renderHistory() {
 
@@ -1439,7 +1776,9 @@ function renderHistory() {
 }
 
 
-// 22. OPEN CHAT HISTORY
+// ==========================================
+// 26. OPEN CHAT HISTORY
+// ==========================================
 
 if (historyBtn) {
 
@@ -1467,7 +1806,9 @@ if (historyBtn) {
 }
 
 
-// 23. CLOSE CHAT HISTORY
+// ==========================================
+// 27. CLOSE CHAT HISTORY
+// ==========================================
 
 if (closeHistoryBtn && historyPanel) {
 
@@ -1483,7 +1824,9 @@ if (closeHistoryBtn && historyPanel) {
 }
 
 
-// 24. SUBSCRIBE OPTION
+// ==========================================
+// 28. SUBSCRIBE OPTION
+// ==========================================
 
 if (subscribeBtn) {
 
@@ -1507,7 +1850,9 @@ if (subscribeBtn) {
 }
 
 
-// 25. CHAT WITH DEVELOPER OPTION
+// ==========================================
+// 29. CHAT WITH DEVELOPER OPTION
+// ==========================================
 
 if (developerBtn) {
 
@@ -1531,7 +1876,9 @@ if (developerBtn) {
 }
 
 
-// 26. SEND BUTTON
+// ==========================================
+// 30. SEND BUTTON
+// ==========================================
 
 if (sendBtn) {
 
@@ -1543,7 +1890,9 @@ if (sendBtn) {
 }
 
 
-// 27. ENTER KEY
+// ==========================================
+// 31. ENTER KEY
+// ==========================================
 
 if (userInput) {
 
@@ -1568,12 +1917,16 @@ if (userInput) {
 }
 
 
-// 28. START APPLICATION
+// ==========================================
+// 32. START APPLICATION
+// ==========================================
 
 loadConversations();
 
 
-// 29. REGISTER SERVICE WORKER
+// ==========================================
+// 33. REGISTER SERVICE WORKER
+// ==========================================
 
 if ("serviceWorker" in navigator) {
 
@@ -1706,21 +2059,21 @@ if ("serviceWorker" in navigator) {
 
         if (screen !== "chat") {
 
-            const dropdownMenu =
+            const menu =
                 document.getElementById("dropdownMenu");
 
-            const historyPanel =
+            const history =
                 document.getElementById("historyPanel");
 
-            if (dropdownMenu) {
+            if (menu) {
 
-                dropdownMenu.hidden = true;
+                menu.hidden = true;
 
             }
 
-            if (historyPanel) {
+            if (history) {
 
-                historyPanel.hidden = true;
+                history.hidden = true;
 
             }
 
