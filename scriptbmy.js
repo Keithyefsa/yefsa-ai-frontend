@@ -2686,12 +2686,262 @@ function bmyAIInitialize(business) {
    AI MESSAGE DISPLAY
 ========================================== */
 
+function bmyAIRenderInline(text, parent) {
+
+    const pattern =
+        /(\*\*[^*]+\*\*|__[^_]+__|`[^`]+`|\*[^*]+\*|_[^_]+_)/g;
+
+    let lastIndex = 0;
+    let match;
+
+    while ((match = pattern.exec(text)) !== null) {
+
+        if (match.index > lastIndex) {
+            parent.appendChild(
+                document.createTextNode(
+                    text.slice(lastIndex, match.index)
+                )
+            );
+        }
+
+        const token = match[0];
+        let element;
+
+        if (
+            token.startsWith("**") ||
+            token.startsWith("__")
+        ) {
+            element = document.createElement("strong");
+            element.textContent = token.slice(2, -2);
+
+        } else if (token.startsWith("`")) {
+            element = document.createElement("code");
+            element.textContent = token.slice(1, -1);
+
+        } else {
+            element = document.createElement("em");
+            element.textContent = token.slice(1, -1);
+        }
+
+        parent.appendChild(element);
+
+        lastIndex = pattern.lastIndex;
+    }
+
+    if (lastIndex < text.length) {
+        parent.appendChild(
+            document.createTextNode(
+                text.slice(lastIndex)
+            )
+        );
+    }
+}
+
+
+function bmyAIRenderMarkdown(content, container) {
+
+    const lines = String(content || "").split("\n");
+
+    let i = 0;
+
+    while (i < lines.length) {
+
+        const line = lines[i].trim();
+
+        if (!line) {
+            i++;
+            continue;
+        }
+
+        // TABLES
+
+        if (
+            line.includes("|") &&
+            i + 1 < lines.length &&
+            /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(
+                lines[i + 1].trim()
+            )
+        ) {
+
+            const table = document.createElement("table");
+            table.className = "ai-markdown-table";
+
+            const headers = line
+                .replace(/^\||\|$/g, "")
+                .split("|")
+                .map(value => value.trim());
+
+            const thead = document.createElement("thead");
+            const headerRow = document.createElement("tr");
+
+            headers.forEach(value => {
+                const th = document.createElement("th");
+                bmyAIRenderInline(value, th);
+                headerRow.appendChild(th);
+            });
+
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            i += 2;
+
+            const tbody = document.createElement("tbody");
+
+            while (
+                i < lines.length &&
+                lines[i].includes("|") &&
+                lines[i].trim()
+            ) {
+
+                const values = lines[i]
+                    .trim()
+                    .replace(/^\||\|$/g, "")
+                    .split("|")
+                    .map(value => value.trim());
+
+                const row = document.createElement("tr");
+
+                headers.forEach((_, index) => {
+
+                    const td = document.createElement("td");
+
+                    bmyAIRenderInline(
+                        values[index] || "",
+                        td
+                    );
+
+                    row.appendChild(td);
+                });
+
+                tbody.appendChild(row);
+                i++;
+            }
+
+            table.appendChild(tbody);
+            container.appendChild(table);
+
+            continue;
+        }
+
+        // HEADINGS
+
+        const heading = line.match(/^(#{1,3})\s+(.+)$/);
+
+        if (heading) {
+
+            const level = heading[1].length;
+
+            const element = document.createElement(
+                "h" + level
+            );
+
+            bmyAIRenderInline(heading[2], element);
+
+            container.appendChild(element);
+
+            i++;
+            continue;
+        }
+
+        // HORIZONTAL DIVIDER
+
+        if (/^(-{3,}|\*{3,})$/.test(line)) {
+
+            container.appendChild(
+                document.createElement("hr")
+            );
+
+            i++;
+            continue;
+        }
+
+        // BULLET LISTS
+
+        if (/^[-*]\s+/.test(line)) {
+
+            const list = document.createElement("ul");
+
+            while (
+                i < lines.length &&
+                /^[-*]\s+/.test(lines[i].trim())
+            ) {
+
+                const item = document.createElement("li");
+
+                bmyAIRenderInline(
+                    lines[i].trim().replace(/^[-*]\s+/, ""),
+                    item
+                );
+
+                list.appendChild(item);
+                i++;
+            }
+
+            container.appendChild(list);
+            continue;
+        }
+
+        // NUMBERED LISTS
+
+        if (/^\d+\.\s+/.test(line)) {
+
+            const list = document.createElement("ol");
+
+            while (
+                i < lines.length &&
+                /^\d+\.\s+/.test(lines[i].trim())
+            ) {
+
+                const item = document.createElement("li");
+
+                bmyAIRenderInline(
+                    lines[i].trim().replace(/^\d+\.\s+/, ""),
+                    item
+                );
+
+                list.appendChild(item);
+                i++;
+            }
+
+            container.appendChild(list);
+            continue;
+        }
+
+        // BLOCKQUOTES
+
+        if (line.startsWith(">")) {
+
+            const quote = document.createElement("blockquote");
+
+            bmyAIRenderInline(
+                line.replace(/^>\s?/, ""),
+                quote
+            );
+
+            container.appendChild(quote);
+
+            i++;
+            continue;
+        }
+
+        // NORMAL PARAGRAPHS
+
+        const paragraph = document.createElement("p");
+
+        bmyAIRenderInline(line, paragraph);
+
+        container.appendChild(paragraph);
+
+        i++;
+    }
+}
+
+
 function bmyAIAddMessage(role, content) {
 
     const messages = $("aiMessages");
 
     if (!messages) return null;
-
 
     const message = document.createElement("div");
 
@@ -2702,22 +2952,23 @@ function bmyAIAddMessage(role, content) {
                 : "assistant"
         );
 
+    if (role === "user") {
 
-    // Use textContent to prevent HTML injection.
+        message.textContent = String(content || "");
 
-    message.textContent = String(
-        content || ""
-    );
+    } else {
 
-    message.style.whiteSpace = "pre-wrap";
+        message.classList.add("ai-markdown");
 
+        bmyAIRenderMarkdown(
+            content,
+            message
+        );
+    }
 
     messages.appendChild(message);
 
-
-    messages.scrollTop =
-        messages.scrollHeight;
-
+    messages.scrollTop = messages.scrollHeight;
 
     return message;
 }
