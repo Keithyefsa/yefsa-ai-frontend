@@ -1,1532 +1,683 @@
 
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#080b18">
-<meta name="description" content="BMY by YefsaTech. Business management made simple.">
-<title>BMY | Business Management by Yefsa</title>
-<link rel="stylesheet" href="stylebmy.css">
-</head>
+<CodeBlock language="html" editable> <!doctype html> <html lang="en"> <head> <meta charset="utf-8"> <meta name="viewport" content="width=device-width,initial-scale=1"> <meta name="theme-color" content="#080b18"> <meta name="description" content="BMY by YefsaTech. Business management made simple."> <title>BMY | Business Management by Yefsa</title> <link rel="stylesheet" href="stylebmy.css"> </head>
 
 <body>
 
-<!-- =====================================
-     1. AUTHENTICATION SCREEN
-====================================== -->
+<!-- ===================================== 1. AUTHENTICATION SCREEN ====================================== -->
 
-<div id="authScreen" class="auth-screen">
-  <div class="auth-card">
+<div id="authScreen" class="auth-screen"> <div class="auth-card">
 
-    <div class="auth-brand">
-      <b>B</b>
-      <span>
-        <strong>BMY</strong>
-        <small>BY YEFSATECH</small>
-      </span>
-    </div>
+<div class="auth-brand"> <b>B</b> <span> <strong>BMY</strong> <small>BY YEFSATECH</small> </span> </div>
 
-    <div class="auth-heading">
-      <small class="eyebrow">BUSINESS MANAGEMENT BY YEFSA</small>
-      <h1 id="authTitle">Welcome back</h1>
-      <p id="authDescription">Sign in to manage your business.</p>
-    </div>
+<div class="auth-heading"> <small class="eyebrow">BUSINESS MANAGEMENT BY YEFSA</small> <h1 id="authTitle">Welcome back</h1> <p id="authDescription">Sign in to manage your business.</p> </div>
 
-    <!-- LOGIN FORM -->
-    <form id="loginForm">
+<form id="loginForm">
 
-      <div class="field">
-        <label for="loginEmail">Email address</label>
-        <input
-          id="loginEmail"
-          type="email"
-          placeholder="you@example.com"
-          autocomplete="username"
-          required
-        >
-      </div>
+<div class="field"> <label for="loginEmail">Email address</label> <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="username" required > </div>
 
-      <div class="field">
-        <label for="loginPassword">Password</label>
-        <input
-          id="loginPassword"
-          type="password"
-          placeholder="Enter your password"
-          autocomplete="current-password"
-          required
-        >
-      </div>
+<div class="field"> <label for="loginPassword">Password</label> <input id="loginPassword" type="password" placeholder="Enter your password" autocomplete="current-password" required > </div>
 
-      <p id="authError" class="auth-error" role="alert" hidden></p>
+<p id="authError" class="auth-error" role="alert" hidden></p>
 
-      <button id="loginButton" class="primary auth-submit" type="submit">
-        Sign in
-      </button>
+<button id="loginButton" class="primary auth-submit" type="submit"> Sign in </button>
 
-    </form>
+</form>
 
-    <!-- REGISTRATION FORM -->
-    <form id="registerForm" hidden>
+<form id="registerForm" hidden>
 
-      <div class="field">
-        <label for="registerName">Full name</label>
-        <input
-          id="registerName"
-          type="text"
-          placeholder="Your full name"
-          maxlength="255"
-          required
-        >
-      </div>
+<div class="field"> <label for="registerName">Full name</label> <input id="registerName" type="text" placeholder="Your full name" maxlength="255" required> </div>
 
-      <div class="field">
-        <label for="registerEmail">Email address</label>
-        <input
-          id="registerEmail"
-          type="email"
-          placeholder="you@example.com"
-          maxlength="255"
-          required
-        >
-      </div>
+<div class="field"> <label for="registerEmail">Email address</label> <input id="registerEmail" type="email" placeholder="you@example.com" maxlength="255" required> </div>
 
-      <div class="field">
-        <label for="registerPassword">Password</label>
-        <input
-          id="registerPassword"
-          type="password"
-          placeholder="At least 8 characters"
-          minlength="8"
-          maxlength="1024"
-          required
-        >
-      </div>
+<div class="field"> <label for="registerPassword">Password</label> <input id="registerPassword" type="password" placeholder="At least 8 characters" minlength="8" maxlength="1024" required> </div>
 
-      <div class="field">
-        <label for="registerBusiness">Business name</label>
-        <input
-          id="registerBusiness"
-          type="text"
-          placeholder="Your business name"
-          maxlength="255"
-          required
-        >
-      </div>
+<div class="field"> <label for="registerBusiness">Business name</label> <input id="registerBusiness" type="text" placeholder="Your business name" maxlength="255" required> </div>
 
-      <p id="registerError" class="auth-error" role="alert" hidden></p>
+<p id="registerError" class="auth-error" role="alert" hidden></p>
 
-      <button id="registerButton" class="primary auth-submit" type="submit">
-        Create account
-      </button>
+<button id="registerButton" class="primary auth-submit" type="submit"> Create account </button>
 
-    </form>
+</form>
 
-    <!-- FORM SWITCH -->
-    <div class="auth-switch">
-      <span id="authSwitchText">New to BMY?</span>
-      <button id="authSwitchButton" type="button" class="link">
-        Create an account
-      </button>
-    </div>
+<div class="auth-switch"> <span id="authSwitchText">New to BMY?</span> <button id="authSwitchButton" type="button" class="link"> Create an account </button> </div>
 
-    <div class="auth-footer">
-      Secure business access · YEFSATECH
-    </div>
+<div class="auth-footer"> Secure business access · YEFSATECH </div>
 
-  </div>
-</div>
+</div> </div>
 
-
-<!-- =====================================
-     2. BUSINESS SELECTION SCREEN
-====================================== -->
+<!-- ===================================== 2. BUSINESS SELECTION SCREEN ====================================== -->
 
 <div id="businessScreen" class="auth-screen" hidden>
 
-  <div class="auth-card">
+<div class="auth-card">
 
-    <div class="auth-brand">
-      <b>B</b>
-      <span>
-        <strong>BMY</strong>
-        <small>BY YEFSATECH</small>
-      </span>
-    </div>
+<div class="auth-brand"> <b>B</b> <span> <strong>BMY</strong> <small>BY YEFSATECH</small> </span> </div>
 
-    <div class="auth-heading">
-      <small class="eyebrow">YOUR WORKSPACE</small>
-      <h1>Select a business</h1>
-      <p>Choose the business you want to manage.</p>
-    </div>
+<div class="auth-heading"> <small class="eyebrow">YOUR WORKSPACE</small> <h1>Select a business</h1> <p>Choose the business you want to manage.</p> </div>
 
-    <div id="businessList" class="business-list"></div>
+<div id="businessList" class="business-list"></div>
 
-    <button
-      id="businessLogout"
-      class="secondary auth-submit"
-      type="button"
-    >
-      Sign out
-    </button>
+<button id="businessLogout" class="secondary auth-submit" type="button"> Sign out </button>
 
-  </div>
-</div>
+</div> </div>
 
-
-<!-- =====================================
-     3. SUPER ADMIN SCREEN
-====================================== -->
+<!-- ===================================== 3. SUPER ADMIN SCREEN ====================================== -->
 
 <div id="superAdminScreen" class="super-admin-screen" hidden>
 
-  <div class="super-admin-container">
+<div class="super-admin-container">
 
-    <!-- HEADER -->
-    <header class="super-admin-header">
+<header class="super-admin-header">
 
-      <div class="auth-brand">
-        <b>B</b>
-        <span>
-          <strong>BMY</strong>
-          <small>BY YEFSATECH</small>
-        </span>
-      </div>
+<div class="auth-brand"> <b>B</b> <span> <strong>BMY</strong> <small>BY YEFSATECH</small> </span> </div>
 
-      <div class="super-admin-header-actions">
+<div class="super-admin-header-actions">
 
-        <span class="super-admin-status">
-          <span></span>
-          Platform administration
-        </span>
+<span class="super-admin-status"> <span></span> Platform administration </span>
 
-        <button
-          id="superAdminRefresh"
-          class="secondary"
-          type="button"
-        >
-          ↻ Refresh
-        </button>
+<button id="superAdminRefresh" class="secondary" type="button"> ↻ Refresh </button>
 
-        <button
-          id="superAdminLogout"
-          class="secondary"
-          type="button"
-        >
-          Sign out
-        </button>
+<button id="superAdminLogout" class="secondary" type="button"> Sign out </button>
 
-      </div>
-
-    </header>
-
-
-    <!-- WELCOME -->
-    <section class="super-admin-welcome">
-
-      <div>
-        <small class="eyebrow">YEFSATECH PLATFORM CONTROL</small>
-        <h1>Super Admin Dashboard</h1>
-        <p>
-          Manage businesses, platform users and administrator access
-          from one central location.
-        </p>
-      </div>
-
-      <div class="super-admin-welcome-label">
-        <span>✦</span>
-        <div>
-          <strong>Super Admin</strong>
-          <small>Full platform access</small>
-        </div>
-      </div>
-
-    </section>
-
-
-    <!-- PLATFORM STATISTICS -->
-    <section class="super-admin-stats">
-
-      <article class="super-admin-stat">
-
-        <div class="super-admin-stat-icon">▦</div>
-
-        <div>
-          <span>Total businesses</span>
-          <strong id="superAdminBusinessCount">0</strong>
-          <small>Registered businesses</small>
-        </div>
-
-      </article>
-
-
-      <article class="super-admin-stat">
-
-        <div class="super-admin-stat-icon">♙</div>
-
-        <div>
-          <span>Platform users</span>
-          <strong id="superAdminUserCount">0</strong>
-          <small>Registered user accounts</small>
-        </div>
-
-      </article>
-
-
-      <article class="super-admin-stat">
-
-        <div class="super-admin-stat-icon">♧</div>
-
-        <div>
-          <span>Super administrators</span>
-          <strong id="superAdminAdminCount">0</strong>
-          <small>Platform administrators</small>
-        </div>
-
-      </article>
-
-    </section>
-
-
-    <!-- CREATE BUSINESS -->
-    <section class="super-admin-business-section">
-
-      <div class="super-admin-section-heading">
-
-        <div>
-          <small class="eyebrow">BUSINESS MANAGEMENT</small>
-          <h2>Register a new business</h2>
-          <p>
-            Create a business account and assign its first owner.
-          </p>
-        </div>
-
-      </div>
-
-
-      <div class="super-admin-business-panel">
-
-        <form id="superAdminBusinessForm">
-
-          <div class="super-admin-form-heading">
-            <h3>Business information</h3>
-            <p>Enter the details of the business being registered.</p>
-          </div>
-
-
-          <div class="super-admin-form-grid">
-
-            <!-- BUSINESS NAME -->
-            <div class="field">
-              <label for="superAdminBusinessName">
-                Business name *
-              </label>
-
-              <input
-                id="superAdminBusinessName"
-                name="business_name"
-                type="text"
-                maxlength="255"
-                placeholder="e.g. Yefsa Traders"
-                required
-              >
-            </div>
-
-
-            <!-- BUSINESS TYPE -->
-            <div class="field">
-              <label for="superAdminBusinessType">
-                Business type
-              </label>
-
-              <select
-                id="superAdminBusinessType"
-                name="business_type"
-              >
-                <option value="">Select business type</option>
-                <option value="retail">Retail</option>
-                <option value="supermarket">Supermarket</option>
-                <option value="pharmacy">Pharmacy</option>
-                <option value="restaurant">Restaurant</option>
-                <option value="salon">Salon</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-
-            <!-- OWNER NAME -->
-            <div class="field">
-              <label for="superAdminOwnerName">
-                Business owner's full name *
-              </label>
-
-              <input
-                id="superAdminOwnerName"
-                name="owner_full_name"
-                type="text"
-                maxlength="255"
-                placeholder="Enter owner's full name"
-                required
-              >
-            </div>
-
-
-            <!-- OWNER EMAIL -->
-            <div class="field">
-              <label for="superAdminOwnerEmail">
-                Business owner's email *
-              </label>
-
-              <input
-                id="superAdminOwnerEmail"
-                name="owner_email"
-                type="email"
-                maxlength="255"
-                placeholder="owner@example.com"
-                required
-              >
-            </div>
-
-
-            <!-- BUSINESS EMAIL -->
-            <div class="field">
-              <label for="superAdminBusinessEmail">
-                Business email
-              </label>
-
-              <input
-                id="superAdminBusinessEmail"
-                name="business_email"
-                type="email"
-                maxlength="255"
-                placeholder="business@example.com"
-              >
-            </div>
-
-
-            <!-- BUSINESS PHONE -->
-            <div class="field">
-              <label for="superAdminBusinessPhone">
-                Business phone
-              </label>
-
-              <input
-                id="superAdminBusinessPhone"
-                name="business_phone"
-                type="tel"
-                maxlength="50"
-                placeholder="+256..."
-              >
-            </div>
-
-
-            <!-- BUSINESS ADDRESS -->
-            <div class="field wide">
-              <label for="superAdminBusinessAddress">
-                Business address
-              </label>
-
-              <input
-                id="superAdminBusinessAddress"
-                name="business_address"
-                type="text"
-                maxlength="500"
-                placeholder="Enter business location"
-              >
-            </div>
-
-
-            <!-- CURRENCY -->
-            <div class="field">
-              <label for="superAdminCurrency">
-                Business currency
-              </label>
-
-              <select
-                id="superAdminCurrency"
-                name="currency"
-              >
-                <option value="UGX">UGX - Uganda Shillings</option>
-                <option value="USD">USD - US Dollars</option>
-                <option value="KES">KES - Kenya Shillings</option>
-                <option value="TZS">TZS - Tanzania Shillings</option>
-              </select>
-            </div>
-
-          </div>
-
-
-          <!-- ERROR MESSAGE -->
-          <p
-            id="superAdminError"
-            class="auth-error"
-            role="alert"
-            hidden
-          ></p>
-
-
-          <!-- SUBMIT -->
-          <div class="super-admin-form-actions">
-
-            <button
-              id="superAdminCreateButton"
-              class="primary"
-              type="submit"
-            >
-              ＋ Create business
-            </button>
-
-          </div>
-
-        </form>
-
-      </div>
-
-    </section>
-
-
-    <!-- BUSINESS CREATION RESULT -->
-    <section
-      id="superAdminResult"
-      class="super-admin-result"
-      aria-live="polite"
-      hidden
-    >
-
-      <div class="super-admin-result-heading">
-        <span>✓</span>
-        <div>
-          <h2>Business registration result</h2>
-          <p>Business creation information</p>
-        </div>
-      </div>
-
-      <div
-        id="superAdminResultDetails"
-        class="super-admin-result-details"
-      ></div>
-
-    </section>
-
-
-    <!-- FOOTER -->
-    <footer class="super-admin-footer">
-      <span>© <span id="superAdminYear"></span> YEFSATECH</span>
-      <span>Business Management by Yefsa · BMY</span>
-    </footer>
-
-  </div>
 </div>
 
+</header>
 
-<!-- =====================================
-     4. BUSINESS WORKSPACE SIDEBAR
-====================================== -->
+<section class="super-admin-welcome">
+
+<div> <small class="eyebrow">YEFSATECH PLATFORM CONTROL</small> <h1>Super Admin Dashboard</h1> <p> Manage businesses, platform users and administrator access from one central location. </p> </div>
+
+<div class="super-admin-welcome-label"> <span>✦</span> <div> <strong>Super Admin</strong> <small>Full platform access</small> </div> </div>
+
+</section>
+
+<section class="super-admin-stats">
+
+<article class="super-admin-stat"> <div class="super-admin-stat-icon">▦</div> <div> <span>Total businesses</span> <strong id="superAdminBusinessCount">0</strong> <small>Registered businesses</small> </div> </article>
+
+<article class="super-admin-stat"> <div class="super-admin-stat-icon">♙</div> <div> <span>Platform users</span> <strong id="superAdminUserCount">0</strong> <small>Registered user accounts</small> </div> </article>
+
+<article class="super-admin-stat"> <div class="super-admin-stat-icon">♧</div> <div> <span>Super administrators</span> <strong id="superAdminAdminCount">0</strong> <small>Platform administrators</small> </div> </article>
+
+</section>
+
+<section class="super-admin-business-section">
+
+<div class="super-admin-section-heading"> <div> <small class="eyebrow">BUSINESS MANAGEMENT</small> <h2>Register a new business</h2> <p>Create a business account and assign its first owner.</p> </div> </div>
+
+<div class="super-admin-business-panel">
+
+<form id="superAdminBusinessForm">
+
+<div class="super-admin-form-heading"> <h3>Business information</h3> <p>Enter the details of the business being registered.</p> </div>
+
+<div class="super-admin-form-grid">
+
+<div class="field"> <label for="superAdminBusinessName">Business name \*</label> <input id="superAdminBusinessName" name="business_name" type="text" maxlength="255" placeholder="e.g. Yefsa Traders" required> </div>
+
+<div class="field"> <label for="superAdminBusinessType">Business type</label> <select id="superAdminBusinessType" name="business_type"> <option value="">Select business type</option> <option value="retail">Retail</option> <option value="supermarket">Supermarket</option> <option value="pharmacy">Pharmacy</option> <option value="restaurant">Restaurant</option> <option value="salon">Salon</option> <option value="other">Other</option> </select> </div>
+
+<div class="field"> <label for="superAdminOwnerName">Business owner's full name \*</label> <input id="superAdminOwnerName" name="owner_full_name" type="text" maxlength="255" placeholder="Enter owner's full name" required> </div>
+
+<div class="field"> <label for="superAdminOwnerEmail">Business owner's email \*</label> <input id="superAdminOwnerEmail" name="owner_email" type="email" maxlength="255" placeholder="owner@example.com" required> </div>
+
+<div class="field"> <label for="superAdminBusinessEmail">Business email</label> <input id="superAdminBusinessEmail" name="business_email" type="email" maxlength="255" placeholder="business@example.com"> </div>
+
+<div class="field"> <label for="superAdminBusinessPhone">Business phone</label> <input id="superAdminBusinessPhone" name="business_phone" type="tel" maxlength="50" placeholder="+256..."> </div>
+
+<div class="field wide"> <label for="superAdminBusinessAddress">Business address</label> <input id="superAdminBusinessAddress" name="business_address" type="text" maxlength="500" placeholder="Enter business location"> </div>
+
+<div class="field"> <label for="superAdminCurrency">Business currency</label> <select id="superAdminCurrency" name="currency"> <option value="UGX">UGX - Uganda Shillings</option> <option value="USD">USD - US Dollars</option> <option value="KES">KES - Kenya Shillings</option> <option value="TZS">TZS - Tanzania Shillings</option> </select> </div>
+
+</div>
+
+<p id="superAdminError" class="auth-error" role="alert" hidden></p>
+
+<div class="super-admin-form-actions"> <button id="superAdminCreateButton" class="primary" type="submit"> ＋ Create business </button> </div>
+
+</form>
+
+</div>
+
+</section>
+
+<section id="superAdminResult" class="super-admin-result" aria-live="polite" hidden>
+
+<div class="super-admin-result-heading"> <span>✓</span> <div> <h2>Business registration result</h2> <p>Business creation information</p> </div> </div>
+
+<div id="superAdminResultDetails" class="super-admin-result-details"></div>
+
+</section>
+
+<footer class="super-admin-footer"> <span>© <span id="superAdminYear"></span> YEFSATECH</span> <span>Business Management by Yefsa · BMY</span> </footer>
+
+</div> </div>
+
+<!-- ===================================== 4. BUSINESS WORKSPACE SIDEBAR ====================================== -->
 
 <aside class="sidebar" id="sidebar" hidden>
 
-  <a class="brand" href="#">
-    <b class="brand-icon">B</b>
-    <span>
-      <strong>BMY</strong>
-      <small>BY YEFSATECH</small>
-    </span>
-  </a>
+<a class="brand" href="#"> <b class="brand-icon">B</b> <span> <strong>BMY</strong> <small>BY YEFSATECH</small> </span> </a>
 
+<div class="workspace"> <b>Y</b> <span> <strong>My Workspace</strong> <small>Business account</small> </span> </div>
 
-  <div class="workspace">
-    <b>Y</b>
-    <span>
-      <strong>My Workspace</strong>
-      <small>Business account</small>
-    </span>
-  </div>
+<nav>
 
+<label>WORKSPACE</label>
 
-  <nav>
+<button class="nav active" data-page="dashboard">▦ Dashboard</button> <button class="nav" data-page="customers">♙ Customers</button> <button class="nav" data-page="sales">↗ Sales & transactions</button> <button class="nav" data-page="finance">◈ Finance</button> <button class="nav" data-page="inventory">▤ Inventory</button>
 
-    <label>WORKSPACE</label>
+<label>PEOPLE</label>
 
-    <button class="nav active" data-page="dashboard">
-      ▦ Dashboard
-    </button>
+<button class="nav" data-page="hr">♧ Human resources</button> <button class="nav" data-page="suppliers">⇄ Suppliers</button>
 
-    <button class="nav" data-page="customers">
-      ♙ Customers
-    </button>
+<label>TOOLS</label>
 
-    <button class="nav" data-page="sales">
-      ↗ Sales & transactions
-    </button>
+<button class="nav" data-page="receipts">▧ Receipting</button> <button class="nav" data-page="reports">▥ Reports</button>
 
-    <button class="nav" data-page="finance">
-      ◈ Finance
-    </button>
+<button class="nav" data-page="ai"> ✳ Ask Yefsa AI </button>
 
-    <button class="nav" data-page="inventory">
-      ▤ Inventory
-    </button>
+</nav>
 
+<div class="side-bottom">
 
-    <label>PEOPLE</label>
+<button class="nav" data-page="settings">⚙ Settings</button>
 
-    <button class="nav" data-page="hr">
-      ♧ Human resources
-    </button>
+<div class="user"> <b>A</b> <span> <strong>Administrator</strong> <small>Workspace owner</small> </span> </div>
 
-    <button class="nav" data-page="suppliers">
-      ⇄ Suppliers
-    </button>
-
-
-    <label>TOOLS</label>
-
-    <button class="nav" data-page="receipts">
-      ▧ Receipting
-    </button>
-
-    <button class="nav" data-page="reports">
-      ▥ Reports
-    </button>
-
-    <button class="nav" data-page="ai">
-      ✳ Ask Yefsa AI
-      <small>SOON</small>
-    </button>
-
-  </nav>
-
-
-  <div class="side-bottom">
-
-    <button class="nav" data-page="settings">
-      ⚙ Settings
-    </button>
-
-    <div class="user">
-      <b>A</b>
-      <span>
-        <strong>Administrator</strong>
-        <small>Workspace owner</small>
-      </span>
-    </div>
-
-  </div>
+</div>
 
 </aside>
 
-
-<!-- =====================================
-     5. BUSINESS WORKSPACE
-====================================== -->
+<!-- ===================================== 5. BUSINESS WORKSPACE ====================================== -->
 
 <main class="main" hidden>
 
-  <!-- TOP BAR -->
-  <header class="topbar">
+<header class="topbar">
 
-    <button id="menu" class="menu" type="button">
-      ☰
-    </button>
+<button id="menu" class="menu" type="button">☰</button>
 
-    <div class="crumb">
-      YEFSATECH
-      <i>/</i>
-      <strong id="crumb">Dashboard</strong>
-    </div>
+<div class="crumb"> YEFSATECH <i>/</i> <strong id="crumb">Dashboard</strong> </div>
 
-    <div class="top-actions">
+<div class="top-actions">
 
-      <input
-        id="search"
-        type="search"
-        placeholder="Search records and press Enter"
-      >
+<input id="search" type="search" placeholder="Search records and press Enter">
 
-      <b class="avatar">A</b>
+<b class="avatar">A</b>
 
-    </div>
+</div>
 
-  </header>
+</header>
 
+<div class="content">
 
-  <!-- WORKSPACE CONTENT -->
-  <div class="content">
+<!-- DASHBOARD -->
 
+<section class="page active" id="page-dashboard">
 
-    <!-- =================================
-         DASHBOARD
-    ================================== -->
+<div class="heading"> <div> <small class="eyebrow">BUSINESS OVERVIEW</small> <h1>Dashboard</h1> <p>A clear view of what is happening across your business.</p> </div>
 
-    <section class="page active" id="page-dashboard">
+<button class="primary" data-go="sales" type="button"> ＋ Record a sale </button> </div>
 
-      <div class="heading">
+<div class="stats">
 
-        <div>
-          <small class="eyebrow">BUSINESS OVERVIEW</small>
-          <h1>Dashboard</h1>
-          <p>
-            A clear view of what is happening across your business.
-          </p>
-        </div>
+<article> <span>Total revenue</span> <strong id="revenue">UGX 0</strong> <small>Recorded sales</small> </article>
 
-        <button class="primary" data-go="sales" type="button">
-          ＋ Record a sale
-        </button>
+<article> <span>Total expenses</span> <strong id="expenses">UGX 0</strong> <small>Recorded expenses</small> </article>
 
-      </div>
+<article> <span>Customers</span> <strong id="customerCount">0</strong> <small>Saved customer records</small> </article>
 
+<article> <span>Products</span> <strong id="productCount">0</strong> <small id="lowStockCount">0 items low on stock</small> </article>
 
-      <div class="stats">
+</div>
 
-        <article>
-          <span>Total revenue</span>
-          <strong id="revenue">UGX 0</strong>
-          <small>Recorded sales</small>
-        </article>
+<div class="columns">
 
-        <article>
-          <span>Total expenses</span>
-          <strong id="expenses">UGX 0</strong>
-          <small>Recorded expenses</small>
-        </article>
+<article class="panel">
 
-        <article>
-          <span>Customers</span>
-          <strong id="customerCount">0</strong>
-          <small>Saved customer records</small>
-        </article>
+<div class="panel-head"> <div> <h2>Recent transactions</h2> <p>Latest activity recorded in BMY</p> </div>
 
-        <article>
-          <span>Products</span>
-          <strong id="productCount">0</strong>
-          <small id="lowStockCount">0 items low on stock</small>
-        </article>
+<button class="link" data-go="sales" type="button"> View all → </button> </div>
 
-      </div>
+<div class="table-wrap"> <table> <thead> <tr> <th>DESCRIPTION</th> <th>DATE</th> <th>TYPE</th> <th>AMOUNT</th> </tr> </thead>
 
+<tbody id="recent"> <tr> <td colspan="4" class="empty">No transactions yet.</td> </tr> </tbody> </table> </div>
 
-      <div class="columns">
+</article>
 
-        <article class="panel">
+<article class="panel">
 
-          <div class="panel-head">
+<h2>Quick actions</h2> <p class="sub">Common tasks</p>
 
-            <div>
-              <h2>Recent transactions</h2>
-              <p>Latest activity recorded in BMY</p>
-            </div>
+<button class="quick" data-go="customers" type="button"> ＋ <span> <b>Add a customer</b> <small>Create a customer record</small> </span> › </button>
 
-            <button class="link" data-go="sales" type="button">
-              View all →
-            </button>
+<button class="quick" data-go="sales" type="button"> ↗ <span> <b>Record a sale</b> <small>Log incoming revenue</small> </span> › </button>
 
-          </div>
+<button class="quick" data-go="receipts" type="button"> ▧ <span> <b>Create a receipt</b> <small>Prepare a payment receipt</small> </span> › </button>
 
-          <div class="table-wrap">
+</article>
 
-            <table>
+</div>
 
-              <thead>
-                <tr>
-                  <th>DESCRIPTION</th>
-                  <th>DATE</th>
-                  <th>TYPE</th>
-                  <th>AMOUNT</th>
-                </tr>
-              </thead>
+<div class="notice"> ✳ <span> <b>Your business now has an AI assistant</b> <small> Ask questions, analyse business performance and get recommendations based on your authorized BMY records. </small> </span>
 
-              <tbody id="recent">
-                <tr>
-                  <td colspan="4" class="empty">
-                    No transactions yet.
-                  </td>
-                </tr>
-              </tbody>
+<button class="link" data-go="ai" type="button"> Ask Yefsa AI → </button> </div>
 
-            </table>
+</section>
 
-          </div>
+<!-- CUSTOMERS -->
 
-        </article>
+<section class="page" id="page-customers">
 
+<div class="heading"> <div> <small class="eyebrow">WORKSPACE</small> <h1>Customers</h1> <p>Keep customer contact details and account records in one place.</p> </div> </div>
 
-        <article class="panel">
+<article class="panel">
 
-          <h2>Quick actions</h2>
-          <p class="sub">Common tasks</p>
+<form id="customerForm" class="form-row">
 
-          <button class="quick" data-go="customers" type="button">
-            ＋
-            <span>
-              <b>Add a customer</b>
-              <small>Create a customer record</small>
-            </span>
-            ›
-          </button>
+<div class="field"> <label for="customerName">Name</label> <input id="customerName" required placeholder="Customer name"> </div>
 
-          <button class="quick" data-go="sales" type="button">
-            ↗
-            <span>
-              <b>Record a sale</b>
-              <small>Log incoming revenue</small>
-            </span>
-            ›
-          </button>
+<div class="field"> <label for="customerPhone">Phone</label> <input id="customerPhone" placeholder="+256..."> </div>
 
-          <button class="quick" data-go="receipts" type="button">
-            ▧
-            <span>
-              <b>Create a receipt</b>
-              <small>Prepare a payment receipt</small>
-            </span>
-            ›
-          </button>
+<div class="field"> <label for="customerEmail">Email</label> <input id="customerEmail" type="email" placeholder="name@example.com"> </div>
 
-        </article>
+<button class="primary" type="submit">＋ Add customer</button>
 
-      </div>
+</form>
 
+<hr>
 
-      <div class="notice">
+<div class="panel-head"> <h2>Customer directory</h2> <small id="customerTotal">0 records</small> </div>
 
-        ✳
+<div class="table-wrap"> <table> <thead> <tr> <th>CUSTOMER</th> <th>PHONE</th> <th>EMAIL</th> <th>ADDED</th> <th></th> </tr> </thead>
 
-        <span>
-          <b>Yefsa AI integration is planned</b>
-          <small>
-            Ask questions about business information your account is
-            authorized to access once the protected API is connected.
-          </small>
-        </span>
+<tbody id="customers"> <tr> <td colspan="5" class="empty">No customers saved yet.</td> </tr> </tbody> </table> </div>
 
-        <em>COMING SOON</em>
+</article>
 
-      </div>
+</section>
 
-    </section>
+<!-- SALES -->
 
+<section class="page" id="page-sales">
 
-    <!-- =================================
-         CUSTOMERS
-    ================================== -->
+<div class="heading"> <div> <small class="eyebrow">WORKSPACE</small> <h1>Sales & transactions</h1> <p>Record sales and track incoming business revenue.</p> </div> </div>
 
-    <section class="page" id="page-customers">
+<article class="panel">
 
-      <div class="heading">
+<h2>Record a sale</h2> <p class="sub">Sales recorded here update the BMY revenue summary.</p>
 
-        <div>
-          <small class="eyebrow">WORKSPACE</small>
-          <h1>Customers</h1>
-          <p>
-            Keep customer contact details and account records in one place.
-          </p>
-        </div>
+<form id="saleForm" class="form-grid">
 
-      </div>
+<div class="field"> <label for="saleDescription">Description</label> <input id="saleDescription" required placeholder="Product or service sold"> </div>
 
+<div class="field"> <label for="saleCustomer">Customer</label> <input id="saleCustomer" placeholder="Customer (optional)"> </div>
 
-      <article class="panel">
+<div class="field"> <label for="saleAmount">Amount (UGX)</label> <input id="saleAmount" type="number" min="1" required> </div>
 
-        <form id="customerForm" class="form-row">
+<div class="field"> <label for="saleMethod">Payment method</label> <select id="saleMethod"> <option>Cash</option> <option>Mobile Money</option> <option>Bank transfer</option> <option>Card</option> <option>Credit</option> </select> </div>
 
-          <div class="field">
-            <label for="customerName">Name</label>
-            <input
-              id="customerName"
-              required
-              placeholder="Customer name"
-            >
-          </div>
+<button class="primary" type="submit">Save sale</button>
 
-          <div class="field">
-            <label for="customerPhone">Phone</label>
-            <input
-              id="customerPhone"
-              placeholder="+256..."
-            >
-          </div>
+</form>
 
-          <div class="field">
-            <label for="customerEmail">Email</label>
-            <input
-              id="customerEmail"
-              type="email"
-              placeholder="name@example.com"
-            >
-          </div>
+</article>
 
-          <button class="primary" type="submit">
-            ＋ Add customer
-          </button>
+<article class="panel">
 
-        </form>
+<div class="panel-head"> <h2>Transaction history</h2> <small id="saleTotal">0 records</small> </div>
 
-        <hr>
+<div class="table-wrap"> <table> <thead> <tr> <th>DESCRIPTION</th> <th>CUSTOMER</th> <th>DATE</th> <th>METHOD</th> <th>AMOUNT</th> </tr> </thead>
 
-        <div class="panel-head">
-          <h2>Customer directory</h2>
-          <small id="customerTotal">0 records</small>
-        </div>
+<tbody id="sales"> <tr> <td colspan="5" class="empty">No sales recorded yet.</td> </tr> </tbody> </table> </div>
 
-        <div class="table-wrap">
+</article>
 
-          <table>
+</section>
 
-            <thead>
-              <tr>
-                <th>CUSTOMER</th>
-                <th>PHONE</th>
-                <th>EMAIL</th>
-                <th>ADDED</th>
-                <th></th>
-              </tr>
-            </thead>
+<!-- FINANCE -->
 
-            <tbody id="customers">
-              <tr>
-                <td colspan="5" class="empty">
-                  No customers saved yet.
-                </td>
-              </tr>
-            </tbody>
+<section class="page" id="page-finance">
 
-          </table>
+<div class="heading"> <div> <small class="eyebrow">WORKSPACE</small> <h1>Finance</h1> <p>Track business income, expenses and recorded balance.</p> </div> </div>
 
-        </div>
+<div class="stats three">
 
-      </article>
+<article> <span>Income</span> <strong id="income">UGX 0</strong> </article>
 
-    </section>
+<article> <span>Expenses</span> <strong id="expenseTotal">UGX 0</strong> </article>
 
+<article> <span>Net balance</span> <strong id="balance">UGX 0</strong> </article>
 
-    <!-- =================================
-         SALES
-    ================================== -->
+</div>
 
-    <section class="page" id="page-sales">
+<article class="panel">
 
-      <div class="heading">
+<h2>Record an expense</h2>
 
-        <div>
-          <small class="eyebrow">WORKSPACE</small>
-          <h1>Sales & transactions</h1>
-          <p>
-            Record sales and track incoming business revenue.
-          </p>
-        </div>
+<form id="expenseForm" class="form-grid">
 
-      </div>
+<div class="field"> <label for="expenseDescription">Description</label> <input id="expenseDescription" required placeholder="e.g. Transport"> </div>
 
+<div class="field"> <label for="expenseAmount">Amount (UGX)</label> <input id="expenseAmount" type="number" min="1" required> </div>
 
-      <article class="panel">
+<div class="field"> <label for="expenseCategory">Category</label> <select id="expenseCategory"> <option>Operations</option> <option>Transport</option> <option>Utilities</option> <option>Supplies</option> <option>Salaries</option> <option>Other</option> </select> </div>
 
-        <h2>Record a sale</h2>
+<button class="primary" type="submit">Save expense</button>
 
-        <p class="sub">
-          Sales recorded here update the BMY revenue summary.
-        </p>
+</form>
 
-        <form id="saleForm" class="form-grid">
+</article>
 
-          <div class="field">
-            <label for="saleDescription">Description</label>
-            <input
-              id="saleDescription"
-              required
-              placeholder="Product or service sold"
-            >
-          </div>
+<article class="panel">
 
-          <div class="field">
-            <label for="saleCustomer">Customer</label>
-            <input
-              id="saleCustomer"
-              placeholder="Customer (optional)"
-            >
-          </div>
+<h2>Finance activity</h2>
 
-          <div class="field">
-            <label for="saleAmount">Amount (UGX)</label>
-            <input
-              id="saleAmount"
-              type="number"
-              min="1"
-              required
-            >
-          </div>
+<div class="table-wrap"> <table> <thead> <tr> <th>DESCRIPTION</th> <th>DATE</th> <th>TYPE</th> <th>AMOUNT</th> </tr> </thead>
 
-          <div class="field">
-            <label for="saleMethod">Payment method</label>
-            <select id="saleMethod">
-              <option>Cash</option>
-              <option>Mobile Money</option>
-              <option>Bank transfer</option>
-              <option>Card</option>
-              <option>Credit</option>
-            </select>
-          </div>
+<tbody id="financeRows"> <tr> <td colspan="4" class="empty">No finance activity yet.</td> </tr> </tbody> </table> </div>
 
-          <button class="primary" type="submit">
-            Save sale
-          </button>
+</article>
 
-        </form>
+</section>
 
-      </article>
+<!-- HUMAN RESOURCES -->
 
+<section class="page" id="page-hr">
 
-      <article class="panel">
+<div class="heading"> <div> <small class="eyebrow">PEOPLE</small> <h1>Human resources</h1> <p>Maintain an employee directory. Attendance and payroll will follow.</p> </div> </div>
 
-        <div class="panel-head">
-          <h2>Transaction history</h2>
-          <small id="saleTotal">0 records</small>
-        </div>
+<article class="panel">
 
-        <div class="table-wrap">
+<form id="employeeForm" class="form-row">
 
-          <table>
+<div class="field"> <label for="employeeName">Employee name</label> <input id="employeeName" required> </div>
 
-            <thead>
-              <tr>
-                <th>DESCRIPTION</th>
-                <th>CUSTOMER</th>
-                <th>DATE</th>
-                <th>METHOD</th>
-                <th>AMOUNT</th>
-              </tr>
-            </thead>
+<div class="field"> <label for="employeeRole">Position / role</label> <input id="employeeRole" required> </div>
 
-            <tbody id="sales">
-              <tr>
-                <td colspan="5" class="empty">
-                  No sales recorded yet.
-                </td>
-              </tr>
-            </tbody>
+<div class="field"> <label for="employeePhone">Phone</label> <input id="employeePhone" placeholder="+256..."> </div>
 
-          </table>
+<button class="primary" type="submit">＋ Add employee</button>
 
-        </div>
+</form>
 
-      </article>
+<hr>
 
-    </section>
+<div class="panel-head"> <h2>Employee directory</h2> <small id="employeeTotal">0 records</small> </div>
 
+<div class="table-wrap"> <table> <thead> <tr> <th>EMPLOYEE</th> <th>POSITION</th> <th>PHONE</th> <th>ADDED</th> <th></th> </tr> </thead>
 
-    <!-- =================================
-         FINANCE
-    ================================== -->
+<tbody id="employees"> <tr> <td colspan="5" class="empty">No employees saved yet.</td> </tr> </tbody> </table> </div>
 
-    <section class="page" id="page-finance">
+</article>
 
-      <div class="heading">
+</section>
 
-        <div>
-          <small class="eyebrow">WORKSPACE</small>
-          <h1>Finance</h1>
-          <p>
-            Track business income, expenses and recorded balance.
-          </p>
-        </div>
+<!-- RECEIPTS -->
 
-      </div>
+<section class="page" id="page-receipts">
 
+<div class="heading"> <div> <small class="eyebrow">TOOLS</small> <h1>Receipting</h1> <p>Create a printable payment receipt.</p> </div> </div>
 
-      <div class="stats three">
+<article class="panel">
 
-        <article>
-          <span>Income</span>
-          <strong id="income">UGX 0</strong>
-        </article>
+<form id="receiptForm" class="form-grid">
 
-        <article>
-          <span>Expenses</span>
-          <strong id="expenseTotal">UGX 0</strong>
-        </article>
+<div class="field"> <label for="receiptCustomer">Customer name</label> <input id="receiptCustomer" required> </div>
 
-        <article>
-          <span>Net balance</span>
-          <strong id="balance">UGX 0</strong>
-        </article>
+<div class="field"> <label for="receiptPhone">Phone</label> <input id="receiptPhone"> </div>
 
-      </div>
+<div class="field"> <label for="receiptAmount">Amount paid (UGX)</label> <input id="receiptAmount" type="number" min="1" required> </div>
 
+<div class="field"> <label for="receiptMethod">Payment method</label> <select id="receiptMethod"> <option>Cash</option> <option>Mobile Money</option> <option>Bank transfer</option> <option>Card</option> </select> </div>
 
-      <article class="panel">
+<div class="field wide"> <label for="receiptNote">Description</label> <input id="receiptNote" placeholder="What was the payment for?"> </div>
 
-        <h2>Record an expense</h2>
+<button class="primary" type="submit">Generate receipt</button>
 
-        <form id="expenseForm" class="form-grid">
+</form>
 
-          <div class="field">
-            <label for="expenseDescription">Description</label>
-            <input
-              id="expenseDescription"
-              required
-              placeholder="e.g. Transport"
-            >
-          </div>
+<div id="receiptPreview"></div>
 
-          <div class="field">
-            <label for="expenseAmount">Amount (UGX)</label>
-            <input
-              id="expenseAmount"
-              type="number"
-              min="1"
-              required
-            >
-          </div>
+</article>
 
-          <div class="field">
-            <label for="expenseCategory">Category</label>
-            <select id="expenseCategory">
-              <option>Operations</option>
-              <option>Transport</option>
-              <option>Utilities</option>
-              <option>Supplies</option>
-              <option>Salaries</option>
-              <option>Other</option>
-            </select>
-          </div>
+</section>
 
-          <button class="primary" type="submit">
-            Save expense
-          </button>
+<!-- INVENTORY -->
 
-        </form>
+<section class="page" id="page-inventory">
 
-      </article>
+<div class="heading"> <div> <small class="eyebrow">WORKSPACE</small> <h1>Inventory</h1> <p>Product and stock control.</p> </div> </div>
 
+<article class="panel coming"> <b>▤</b> <h2>Inventory management is next</h2> <p> We'll add products, stock movements, reorder levels and supplier links in the next build stage. </p> </article>
 
-      <article class="panel">
+</section>
 
-        <h2>Finance activity</h2>
+<!-- SUPPLIERS -->
 
-        <div class="table-wrap">
+<section class="page" id="page-suppliers">
 
-          <table>
+<div class="heading"> <div> <small class="eyebrow">PEOPLE</small> <h1>Suppliers</h1> <p>Organize supplier contacts and purchasing relationships.</p> </div> </div>
 
-            <thead>
-              <tr>
-                <th>DESCRIPTION</th>
-                <th>DATE</th>
-                <th>TYPE</th>
-                <th>AMOUNT</th>
-              </tr>
-            </thead>
+<article class="panel coming"> <b>⇄</b> <h2>Supplier management is next</h2> <p> Supplier profiles, purchase records and inventory links will be built next. </p> </article>
 
-            <tbody id="financeRows">
-              <tr>
-                <td colspan="4" class="empty">
-                  No finance activity yet.
-                </td>
-              </tr>
-            </tbody>
+</section>
 
-          </table>
+<!-- REPORTS -->
 
-        </div>
+<section class="page" id="page-reports">
 
-      </article>
+<div class="heading"> <div> <small class="eyebrow">TOOLS</small> <h1>Reports</h1> <p>Export records currently saved in this browser.</p> </div>
 
-    </section>
+<button class="secondary" id="export" type="button"> Export workspace data </button> </div>
 
+<article class="panel">
 
-    <!-- =================================
-         HUMAN RESOURCES
-    ================================== -->
+<h2>Workspace backup</h2>
 
-    <section class="page" id="page-hr">
+<p class="sub"> This prototype exports local demo records as JSON. Database-backed reporting will come after backend setup. </p>
 
-      <div class="heading">
+<button class="primary" id="backup" type="button"> Download JSON backup </button>
 
-        <div>
-          <small class="eyebrow">PEOPLE</small>
-          <h1>Human resources</h1>
-          <p>
-            Maintain an employee directory. Attendance and payroll will follow.
-          </p>
-        </div>
+</article>
 
-      </div>
+</section>
 
+<!-- ================================= YEFSA AI WORKSPACE ================================== -->
 
-      <article class="panel">
+<section class="page" id="page-ai">
 
-        <form id="employeeForm" class="form-row">
+<div class="heading">
 
-          <div class="field">
-            <label for="employeeName">Employee name</label>
-            <input id="employeeName" required>
-          </div>
+<div> <small class="eyebrow">BUSINESS INTELLIGENCE</small> <h1>Ask Yefsa AI</h1> <p> Your business data, understood. Your next decision, better informed. </p> </div>
 
-          <div class="field">
-            <label for="employeeRole">Position / role</label>
-            <input id="employeeRole" required>
-          </div>
+<button id="aiClearChat" class="secondary" type="button"> Clear conversation </button>
 
-          <div class="field">
-            <label for="employeePhone">Phone</label>
-            <input
-              id="employeePhone"
-              placeholder="+256..."
-            >
-          </div>
+</div>
 
-          <button class="primary" type="submit">
-            ＋ Add employee
-          </button>
+<!-- AI BUSINESS CONTEXT -->
 
-        </form>
+<article class="panel ai-welcome-panel">
 
-        <hr>
+<div class="ai-welcome-icon">✳</div>
 
-        <div class="panel-head">
-          <h2>Employee directory</h2>
-          <small id="employeeTotal">0 records</small>
-        </div>
+<div class="ai-welcome-content"> <small class="eyebrow">YOUR BUSINESS ASSISTANT</small> <h2>Intelligence that understands your business.</h2> <p> Ask about sales, profit, stock, customers, expenses, suppliers, payroll and business performance. </p>
 
-        <div class="table-wrap">
+<div class="ai-context-meta"> <span class="ai-status-dot"></span> <span id="aiBusinessStatus">Ready to connect to your business</span> <span class="ai-context-divider">·</span> <span id="aiBusinessName">Selected business</span> </div> </div>
 
-          <table>
+</article>
 
-            <thead>
-              <tr>
-                <th>EMPLOYEE</th>
-                <th>POSITION</th>
-                <th>PHONE</th>
-                <th>ADDED</th>
-                <th></th>
-              </tr>
-            </thead>
+<!-- AI SUGGESTED QUESTIONS -->
 
-            <tbody id="employees">
-              <tr>
-                <td colspan="5" class="empty">
-                  No employees saved yet.
-                </td>
-              </tr>
-            </tbody>
+<article class="panel ai-prompts-panel">
 
-          </table>
+<div class="panel-head"> <div> <h2>What would you like to know?</h2> <p>Start with one of these questions.</p> </div> </div>
 
-        </div>
+<div class="ai-prompts">
 
-      </article>
+<button type="button" class="ai-prompt" data-ai-prompt="Analyse my business sales and explain the main trends."> <span>↗</span> <b>Analyse my sales</b> <small>Revenue and sales trends</small> </button>
 
-    </section>
+<button type="button" class="ai-prompt" data-ai-prompt="Review my business profitability. Explain what is known and what is uncertain."> <span>◈</span> <b>Check profitability</b> <small>Revenue, costs and profit</small> </button>
 
+<button type="button" class="ai-prompt" data-ai-prompt="Review my inventory and identify products that need attention."> <span>▤</span> <b>Review my stock</b> <small>Inventory and low stock</small> </button>
 
-    <!-- =================================
-         RECEIPTS
-    ================================== -->
+<button type="button" class="ai-prompt" data-ai-prompt="Analyse my customers and identify useful customer insights."> <span>♙</span> <b>Understand customers</b> <small>Customer activity and trends</small> </button>
 
-    <section class="page" id="page-receipts">
+<button type="button" class="ai-prompt" data-ai-prompt="Check my payment records and identify any reconciliation issues."> <span>⇄</span> <b>Check payments</b> <small>Payment records and issues</small> </button>
 
-      <div class="heading">
+<button type="button" class="ai-prompt" data-ai-prompt="Give me three practical recommendations to improve my business based on its recorded data."> <span>✦</span> <b>Improve my business</b> <small>Practical recommendations</small> </button>
 
-        <div>
-          <small class="eyebrow">TOOLS</small>
-          <h1>Receipting</h1>
-          <p>Create a printable payment receipt.</p>
-        </div>
+</div>
 
-      </div>
+</article>
 
+<!-- AI CHAT AND REVIEW LAYOUT -->
 
-      <article class="panel">
+<div class="ai-layout">
 
-        <form id="receiptForm" class="form-grid">
+<!-- CHAT PANEL -->
 
-          <div class="field">
-            <label for="receiptCustomer">Customer name</label>
-            <input id="receiptCustomer" required>
-          </div>
+<article class="panel ai-chat-panel">
 
-          <div class="field">
-            <label for="receiptPhone">Phone</label>
-            <input id="receiptPhone">
-          </div>
+<div class="ai-chat-header">
 
-          <div class="field">
-            <label for="receiptAmount">Amount paid (UGX)</label>
-            <input
-              id="receiptAmount"
-              type="number"
-              min="1"
-              required
-            >
-          </div>
+<div class="ai-chat-heading">
 
-          <div class="field">
-            <label for="receiptMethod">Payment method</label>
-            <select id="receiptMethod">
-              <option>Cash</option>
-              <option>Mobile Money</option>
-              <option>Bank transfer</option>
-              <option>Card</option>
-            </select>
-          </div>
+<div class="ai-chat-avatar">✳</div>
 
-          <div class="field wide">
-            <label for="receiptNote">Description</label>
-            <input
-              id="receiptNote"
-              placeholder="What was the payment for?"
-            >
-          </div>
+<div> <h2>Yefsa AI Assistant</h2> <p>Business-aware AI assistant</p> </div>
 
-          <button class="primary" type="submit">
-            Generate receipt
-          </button>
+</div>
 
-        </form>
+<span class="ai-chat-label">BMY AI</span>
 
-        <div id="receiptPreview"></div>
+</div>
 
-      </article>
+<!-- CONVERSATION -->
 
-    </section>
+<div id="aiMessages" class="ai-messages" role="log" aria-live="polite" aria-relevant="additions" >
 
+<div class="ai-message ai-message-assistant">
 
-    <!-- =================================
-         INVENTORY
-    ================================== -->
+<div class="ai-message-avatar">✳</div>
 
-    <section class="page" id="page-inventory">
+<div class="ai-message-content">
 
-      <div class="heading">
+<div class="ai-message-author">Yefsa AI</div>
 
-        <div>
-          <small class="eyebrow">WORKSPACE</small>
-          <h1>Inventory</h1>
-          <p>Product and stock control.</p>
-        </div>
+<div class="ai-message-bubble"> Welcome! I'm ready to help you understand your business.
 
-      </div>
+Ask me about your sales, expenses, inventory, customers, suppliers, payroll or overall performance.
 
-      <article class="panel coming">
+I will use the business records available to your account and distinguish recorded facts from estimates. </div>
 
-        <b>▤</b>
+</div>
 
-        <h2>Inventory management is next</h2>
+</div>
 
-        <p>
-          We'll add products, stock movements, reorder levels and
-          supplier links in the next build stage.
-        </p>
+</div>
 
-      </article>
+<!-- CHAT ERROR / STATUS -->
 
-    </section>
+<p id="aiChatError" class="ai-error" role="alert" hidden ></p>
 
+<!-- CHAT COMPOSER -->
 
-    <!-- =================================
-         SUPPLIERS
-    ================================== -->
+<form id="aiChatForm" class="ai-chat-composer">
 
-    <section class="page" id="page-suppliers">
+<div class="ai-composer-input">
 
-      <div class="heading">
+<textarea id="aiChatInput" rows="2" maxlength="4000" placeholder="Ask Yefsa AI about your business..." aria-label="Your message" required ></textarea>
 
-        <div>
-          <small class="eyebrow">PEOPLE</small>
-          <h1>Suppliers</h1>
-          <p>
-            Organize supplier contacts and purchasing relationships.
-          </p>
-        </div>
+<div class="ai-composer-footer">
 
-      </div>
+<small> AI responses are based on available business records. </small>
 
-      <article class="panel coming">
+<button id="aiSendButton" class="primary ai-send-button" type="submit" > Send ↑ </button>
 
-        <b>⇄</b>
+</div>
 
-        <h2>Supplier management is next</h2>
+</div>
 
-        <p>
-          Supplier profiles, purchase records and inventory links
-          will be built next.
-        </p>
+</form>
 
-      </article>
+</article>
 
-    </section>
+<!-- BUSINESS REVIEW PANEL -->
 
+<aside class="panel ai-review-panel">
 
-    <!-- =================================
-         REPORTS
-    ================================== -->
+<div class="ai-review-heading">
 
-    <section class="page" id="page-reports">
+<div class="ai-review-icon">▥</div>
 
-      <div class="heading">
+<div> <small class="eyebrow">BUSINESS ANALYSIS</small> <h2>Performance review</h2> <p>Get an overview of your business performance.</p> </div>
 
-        <div>
-          <small class="eyebrow">TOOLS</small>
-          <h1>Reports</h1>
-          <p>
-            Export records currently saved in this browser.
-          </p>
-        </div>
+</div>
 
-        <button class="secondary" id="export" type="button">
-          Export workspace data
-        </button>
+<div class="ai-review-description"> Yefsa AI will examine available sales, costs, inventory, expenses, customer activity and payment records. </div>
 
-      </div>
+<button id="aiReviewButton" class="primary ai-review-button" type="button" > ✳ Analyse my business </button>
 
+<div id="aiReviewStatus" class="ai-review-status" role="status" aria-live="polite" > Your business review has not started yet. </div>
 
-      <article class="panel">
+<div id="aiReviewError" class="ai-error" role="alert" hidden ></div>
 
-        <h2>Workspace backup</h2>
+<div id="aiReviewOutput" class="ai-review-output" aria-live="polite" hidden ></div>
 
-        <p class="sub">
-          This prototype exports local demo records as JSON.
-          Database-backed reporting will come after backend setup.
-        </p>
+<div class="ai-review-footnote"> <span>✦</span> <small> Recommendations are based on recorded data. Missing or uncertain information will be identified. </small> </div>
 
-        <button class="primary" id="backup" type="button">
-          Download JSON backup
-        </button>
+</aside>
 
-      </article>
+</div>
 
-    </section>
+<div class="ai-disclaimer"> <span>ⓘ</span> <p> Yefsa AI provides business insights, not guaranteed financial results. Always verify important decisions against your original business records. </p> </div>
 
+</section>
 
-    <!-- =================================
-         YEFSA AI
-    ================================== -->
+<!-- SETTINGS -->
 
-    <section class="page" id="page-ai">
+<section class="page" id="page-settings">
 
-      <div class="heading">
+<div class="heading"> <div> <small class="eyebrow">CONFIGURATION</small> <h1>Settings</h1> <p>Basic workspace details.</p> </div> </div>
 
-        <div>
-          <small class="eyebrow">INTELLIGENCE</small>
-          <h1>Ask Yefsa AI</h1>
-          <p>Business intelligence inside BMY.</p>
-        </div>
+<article class="panel">
 
-      </div>
+<form id="settingsForm" class="form-grid">
 
+<div class="field"> <label for="businessName">Business name</label> <input id="businessName" value="My Business"> </div>
 
-      <article class="panel coming">
+<div class="field"> <label for="businessEmail">Business email</label> <input id="businessEmail" type="email"> </div>
 
-        <b>✳</b>
+<div class="field"> <label for="businessPhone">Business phone</label> <input id="businessPhone"> </div>
 
-        <h2>Yefsa AI connection comes next</h2>
+<div class="field"> <label for="currency">Currency</label> <select id="currency"> <option>UGX</option> <option>USD</option> </select> </div>
 
-        <p>
-          BMY will connect to the existing Yefsa AI backend through
-          a protected API. The assistant will only receive business
-          data the signed-in user is authorized to access.
-        </p>
+<button class="primary" type="submit"> Save workspace details </button>
 
-      </article>
+</form>
 
-    </section>
+<p class="warning"> Prototype notice: records currently stay in this browser using local storage. This is not yet a secure multi-user production system. </p>
 
+</article>
 
-    <!-- =================================
-         SETTINGS
-    ================================== -->
+</section>
 
-    <section class="page" id="page-settings">
+</div>
 
-      <div class="heading">
+<!-- WORKSPACE FOOTER -->
 
-        <div>
-          <small class="eyebrow">CONFIGURATION</small>
-          <h1>Settings</h1>
-          <p>Basic workspace details.</p>
-        </div>
-
-      </div>
-
-
-      <article class="panel">
-
-        <form id="settingsForm" class="form-grid">
-
-          <div class="field">
-            <label for="businessName">Business name</label>
-            <input
-              id="businessName"
-              value="My Business"
-            >
-          </div>
-
-          <div class="field">
-            <label for="businessEmail">Business email</label>
-            <input
-              id="businessEmail"
-              type="email"
-            >
-          </div>
-
-          <div class="field">
-            <label for="businessPhone">Business phone</label>
-            <input id="businessPhone">
-          </div>
-
-          <div class="field">
-            <label for="currency">Currency</label>
-            <select id="currency">
-              <option>UGX</option>
-              <option>USD</option>
-            </select>
-          </div>
-
-          <button class="primary" type="submit">
-            Save workspace details
-          </button>
-
-        </form>
-
-
-        <p class="warning">
-          Prototype notice: records currently stay in this browser
-          using local storage. This is not yet a secure multi-user
-          production system.
-        </p>
-
-      </article>
-
-    </section>
-
-  </div>
-
-
-  <!-- WORKSPACE FOOTER -->
-  <footer>
-    © <span id="year"></span> YEFSATECH
-    <span>Business Management by Yefsa · BMY</span>
-  </footer>
+<footer> © <span id="year"></span> YEFSATECH <span>Business Management by Yefsa · BMY</span> </footer>
 
 </main>
 
+<!-- ===================================== 6. GLOBAL NOTIFICATIONS ====================================== -->
 
-<!-- =====================================
-     6. GLOBAL NOTIFICATIONS
-====================================== -->
+<div id="toast" class="toast" role="status" aria-live="polite" ></div>
 
-<div
-  id="toast"
-  class="toast"
-  role="status"
-  aria-live="polite"
-></div>
-
-
-<!-- =====================================
-     7. APPLICATION JAVASCRIPT
-====================================== -->
+<!-- ===================================== 7. APPLICATION JAVASCRIPT ====================================== -->
 
 <script src="scriptbmy.js"></script>
 
-</body>
-</html>
+</body> </html> </CodeBlock>
+
