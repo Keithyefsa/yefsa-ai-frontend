@@ -2521,3 +2521,800 @@ bmyRestoreSession();
 /* ==========================================
    END OF BMY FRONTEND APPLICATION
 ========================================== */
+
+/* ==========================================
+   34. BMY AI ASSISTANT
+========================================== */
+
+// Conversation exists in memory while this page remains open.
+// It is reset whenever a different business is selected.
+
+let bmyAIHistory = [];
+
+let bmyAIActiveBusinessId = null;
+
+let bmyAISending = false;
+
+let bmyAIReviewing = false;
+
+
+/* ==========================================
+   AI BUSINESS CONTEXT
+========================================== */
+
+function bmyAIGetBusiness() {
+
+    try {
+
+        return JSON.parse(
+            sessionStorage.getItem(
+                BMY_SELECTED_KEY
+            ) || "null"
+        );
+
+    } catch {
+        return null;
+    }
+}
+
+
+function bmyAIGetBusinessId() {
+
+    const business = bmyAIGetBusiness();
+
+    if (!business || !business.business_id) {
+        throw new Error(
+            "Please select a business before using Yefsa AI."
+        );
+    }
+
+    const businessId = Number(
+        business.business_id
+    );
+
+    if (
+        !Number.isSafeInteger(businessId) ||
+        businessId <= 0
+    ) {
+        throw new Error(
+            "The selected business information is invalid."
+        );
+    }
+
+    return businessId;
+}
+
+
+/* ==========================================
+   AI INITIALIZATION
+========================================== */
+
+function bmyAIInitialize(business) {
+
+    if (!business) return;
+
+    const businessId = Number(
+        business.business_id
+    );
+
+    if (!businessId) return;
+
+
+    // Prevent conversation history from crossing businesses.
+
+    if (
+        bmyAIActiveBusinessId !== businessId
+    ) {
+
+        bmyAIHistory = [];
+
+        bmyAIActiveBusinessId = businessId;
+
+
+        if ($("aiMessages")) {
+
+            $("aiMessages").innerHTML = `
+                <div class="ai-message assistant">
+                    Hello! I'm Yefsa AI, your business assistant.
+
+                    I can analyse your authorised business records,
+                    answer questions about performance, and help
+                    identify opportunities for improvement.
+
+                    What would you like to know?
+                </div>
+            `;
+        }
+
+
+        if ($("aiReviewOutput")) {
+            $("aiReviewOutput").textContent = "";
+        }
+
+
+        if ($("aiChatError")) {
+            $("aiChatError").hidden = true;
+        }
+
+
+        if ($("aiReviewError")) {
+            $("aiReviewError").hidden = true;
+        }
+
+
+        if ($("aiReviewStatus")) {
+            $("aiReviewStatus").textContent = "";
+        }
+    }
+
+
+    setText(
+        "aiBusinessName",
+        business.business_name || "Your business"
+    );
+
+
+    setText(
+        "aiBusinessStatus",
+        "Connected to your selected business"
+    );
+
+
+    // Add styling classes to the existing HTML elements.
+
+    $("aiMessages")?.classList.add(
+        "ai-messages"
+    );
+
+    $("aiChatForm")?.classList.add(
+        "ai-chat-form"
+    );
+
+    $("aiChatInput")?.closest(
+        ".ai-chat-input-wrap"
+    )?.classList.add(
+        "ai-chat-input-wrap"
+    );
+
+    $("aiReviewOutput")?.classList.add(
+        "ai-review-output"
+    );
+}
+
+
+/* ==========================================
+   AI MESSAGE DISPLAY
+========================================== */
+
+function bmyAIAddMessage(role, content) {
+
+    const messages = $("aiMessages");
+
+    if (!messages) return null;
+
+
+    const message = document.createElement("div");
+
+    message.className =
+        "ai-message " + (
+            role === "user"
+                ? "user"
+                : "assistant"
+        );
+
+
+    // Use textContent to prevent HTML injection.
+
+    message.textContent = String(
+        content || ""
+    );
+
+    message.style.whiteSpace = "pre-wrap";
+
+
+    messages.appendChild(message);
+
+
+    messages.scrollTop =
+        messages.scrollHeight;
+
+
+    return message;
+}
+
+
+/* ==========================================
+   AI LOADING INDICATOR
+========================================== */
+
+function bmyAIShowTyping() {
+
+    const messages = $("aiMessages");
+
+    if (!messages) return null;
+
+
+    const typing = document.createElement("div");
+
+    typing.className =
+        "ai-message assistant";
+
+
+    typing.innerHTML = `
+        <div class="ai-typing">
+            Yefsa AI is analysing
+
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    `;
+
+
+    messages.appendChild(typing);
+
+    messages.scrollTop =
+        messages.scrollHeight;
+
+
+    return typing;
+}
+
+
+/* ==========================================
+   AI ERROR HANDLING
+========================================== */
+
+function bmyAIHandleError(error, errorElement) {
+
+    console.error(
+        "BMY AI error:",
+        error
+    );
+
+
+    if (
+        error.code === "password_change_required"
+    ) {
+
+        sessionStorage.setItem(
+            BMY_PASSWORD_CHANGE_KEY,
+            "true"
+        );
+
+        bmyShowPasswordChange();
+
+        return;
+    }
+
+
+    if (
+        error.status === 401 ||
+        error.status === 403
+    ) {
+
+        bmyLogout();
+
+        return;
+    }
+
+
+    if (errorElement) {
+
+        errorElement.textContent =
+            error.message ||
+            "Yefsa AI could not complete your request.";
+
+        errorElement.hidden = false;
+    }
+}
+
+
+/* ==========================================
+   AI CHAT SUBMISSION
+========================================== */
+
+async function bmyAISendMessage(message) {
+
+    if (bmyAISending) return;
+
+
+    const input = $("aiChatInput");
+
+    const sendButton = $("aiSendButton");
+
+    const errorBox = $("aiChatError");
+
+
+    if (!message || !message.trim()) {
+        return;
+    }
+
+
+    const cleanMessage = message.trim();
+
+
+    if (cleanMessage.length > 5000) {
+
+        if (errorBox) {
+
+            errorBox.textContent =
+                "Your message is too long. Please keep it below 5,000 characters.";
+
+            errorBox.hidden = false;
+        }
+
+        return;
+    }
+
+
+    if (errorBox) {
+        errorBox.hidden = true;
+    }
+
+
+    let businessId;
+
+    try {
+
+        businessId = bmyAIGetBusinessId();
+
+    } catch (error) {
+
+        if (errorBox) {
+
+            errorBox.textContent = error.message;
+
+            errorBox.hidden = false;
+        }
+
+        return;
+    }
+
+
+    if (
+        bmyAIActiveBusinessId !== businessId
+    ) {
+
+        bmyAIInitialize(
+            bmyAIGetBusiness()
+        );
+    }
+
+
+    bmyAISending = true;
+
+
+    if (sendButton) {
+
+        sendButton.disabled = true;
+
+        sendButton.textContent = "Sending...";
+    }
+
+
+    if (input) {
+        input.disabled = true;
+    }
+
+
+    // Capture previous conversation before adding this message.
+
+    const previousHistory =
+        bmyAIHistory.slice(-12);
+
+
+    // Display the user's message.
+
+    bmyAIAddMessage(
+        "user",
+        cleanMessage
+    );
+
+
+    // Keep conversation history in memory.
+
+    bmyAIHistory.push({
+        role: "user",
+        content: cleanMessage
+    });
+
+
+    const typing = bmyAIShowTyping();
+
+
+    try {
+
+        const result = await bmyRequest(
+            `/bmy/business/${businessId}/ai/chat`,
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+
+                    message: cleanMessage,
+
+                    history: previousHistory
+
+                })
+            }
+        );
+
+
+        if (
+            result.status !== "success" ||
+            typeof result.reply !== "string" ||
+            !result.reply.trim()
+        ) {
+
+            throw new Error(
+                result.message ||
+                "Yefsa AI returned an incomplete response."
+            );
+        }
+
+
+        // Remove loading indicator.
+
+        typing?.remove();
+
+
+        // Display AI response.
+
+        bmyAIAddMessage(
+            "assistant",
+            result.reply
+        );
+
+
+        // Store AI response for future conversation context.
+
+        bmyAIHistory.push({
+            role: "assistant",
+            content: result.reply
+        });
+
+
+        // Keep browser-side history manageable.
+
+        bmyAIHistory =
+            bmyAIHistory.slice(-12);
+
+
+    } catch (error) {
+
+        typing?.remove();
+
+        bmyAIHandleError(
+            error,
+            errorBox
+        );
+
+
+    } finally {
+
+        bmyAISending = false;
+
+
+        if (sendButton) {
+
+            sendButton.disabled = false;
+
+            sendButton.textContent = "Send";
+        }
+
+
+        if (input) {
+
+            input.disabled = false;
+
+            input.focus();
+        }
+    }
+}
+
+
+/* ==========================================
+   AI CHAT FORM
+========================================== */
+
+if ($("aiChatForm")) {
+
+    $("aiChatForm").addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+
+            const input = $("aiChatInput");
+
+            if (!input) return;
+
+
+            const message = input.value.trim();
+
+            if (!message) return;
+
+
+            input.value = "";
+
+
+            bmyAISendMessage(message);
+        }
+    );
+}
+
+
+/* ==========================================
+   AI SUGGESTED PROMPTS
+========================================== */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const button = event.target.closest(
+            "[data-ai-prompt]"
+        );
+
+        if (!button) return;
+
+
+        const prompt =
+            button.dataset.aiPrompt;
+
+
+        if (!prompt) return;
+
+
+        go("ai");
+
+
+        const input = $("aiChatInput");
+
+        if (input) {
+            input.value = prompt;
+        }
+
+
+        bmyAISendMessage(prompt);
+    }
+);
+
+
+/* ==========================================
+   CLEAR AI CONVERSATION
+========================================== */
+
+if ($("aiClearChat")) {
+
+    $("aiClearChat").addEventListener(
+        "click",
+        () => {
+
+            if (bmyAISending) return;
+
+
+            bmyAIHistory = [];
+
+
+            if ($("aiMessages")) {
+
+                $("aiMessages").innerHTML = `
+                    <div class="ai-message assistant">
+                        Conversation cleared.
+
+                        I'm ready to help you analyse your business.
+                        What would you like to know?
+                    </div>
+                `;
+            }
+
+
+            if ($("aiChatError")) {
+                $("aiChatError").hidden = true;
+            }
+
+
+            toast("AI conversation cleared.");
+        }
+    );
+}
+
+
+/* ==========================================
+   BUSINESS PERFORMANCE REVIEW
+========================================== */
+
+async function bmyAIRunReview() {
+
+    if (bmyAIReviewing) return;
+
+
+    const button =
+        $("aiReviewButton");
+
+    const status =
+        $("aiReviewStatus");
+
+    const errorBox =
+        $("aiReviewError");
+
+    const output =
+        $("aiReviewOutput");
+
+
+    if (errorBox) {
+        errorBox.hidden = true;
+    }
+
+
+    if (output) {
+        output.textContent = "";
+    }
+
+
+    let businessId;
+
+    try {
+
+        businessId = bmyAIGetBusinessId();
+
+    } catch (error) {
+
+        if (errorBox) {
+
+            errorBox.textContent = error.message;
+
+            errorBox.hidden = false;
+        }
+
+        return;
+    }
+
+
+    bmyAIReviewing = true;
+
+
+    if (button) {
+
+        button.disabled = true;
+
+        button.textContent = "Analysing business...";
+    }
+
+
+    if (status) {
+
+        status.textContent =
+            "Yefsa AI is reviewing your business records...";
+    }
+
+
+    try {
+
+        const result = await bmyRequest(
+            `/bmy/business/${businessId}/ai/review`,
+            {
+                method: "POST"
+            }
+        );
+
+
+        if (
+            result.status !== "success" ||
+            typeof result.reply !== "string" ||
+            !result.reply.trim()
+        ) {
+
+            throw new Error(
+                result.message ||
+                "Yefsa AI could not generate your business review."
+            );
+        }
+
+
+        if (output) {
+
+            output.textContent =
+                result.reply;
+
+            output.style.whiteSpace =
+                "pre-wrap";
+        }
+
+
+        if (status) {
+
+            status.textContent =
+                "Business review completed.";
+        }
+
+
+        toast("Business review completed.");
+
+
+    } catch (error) {
+
+        bmyAIHandleError(
+            error,
+            errorBox
+        );
+
+
+        if (status) {
+            status.textContent = "";
+        }
+
+
+    } finally {
+
+        bmyAIReviewing = false;
+
+
+        if (button) {
+
+            button.disabled = false;
+
+            button.textContent =
+                "Generate business review";
+        }
+    }
+}
+
+
+/* ==========================================
+   AI REVIEW BUTTON
+========================================== */
+
+if ($("aiReviewButton")) {
+
+    $("aiReviewButton").addEventListener(
+        "click",
+        bmyAIRunReview
+    );
+}
+
+
+/* ==========================================
+   AI NAVIGATION INITIALIZATION
+========================================== */
+
+document.querySelectorAll(
+    '.nav[data-page="ai"]'
+).forEach(button => {
+
+    button.addEventListener(
+        "click",
+        () => {
+
+            bmyAIInitialize(
+                bmyAIGetBusiness()
+            );
+        }
+    );
+});
+
+
+/* ==========================================
+   AI WORKSPACE SESSION INITIALIZATION
+========================================== */
+
+// Initialize AI whenever a business workspace opens.
+
+const bmyOriginalOpenWorkspace =
+    bmyOpenWorkspace;
+
+
+bmyOpenWorkspace = function(business) {
+
+    bmyOriginalOpenWorkspace(business);
+
+    bmyAIInitialize(business);
+};
+
+
+/* ==========================================
+   END BMY AI INTEGRATION
+========================================== */
