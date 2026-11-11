@@ -1885,3 +1885,168 @@ footer {
     font-size: 10px;
   }
 }
+/* ==========================================
+   BMY AI MARKDOWN FORMATTING
+========================================== */
+
+/* Markdown headings */
+
+.ai-message h1,
+.ai-message h2,
+.ai-message h3 {
+    font-family: 'Manrope', sans-serif;
+    color: #ffffff;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.ai-message h1 {
+    font-size: 17px;
+    margin: 17px 0 10px;
+}
+
+.ai-message h2 {
+    font-size: 15px;
+    margin: 15px 0 9px;
+}
+
+.ai-message h3 {
+    font-size: 13px;
+    margin: 13px 0 7px;
+}
+
+/* Markdown emphasis */
+
+.ai-message strong {
+    color: #d4bcff;
+    font-weight: 700;
+}
+
+.ai-message em {
+    color: #c6cce0;
+}
+
+/* Markdown tables */
+
+.ai-message table.ai-markdown-table {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    margin: 13px 0;
+    font-size: 10px;
+}
+
+.ai-message table.ai-markdown-table th {
+    background: #29345a;
+    color: #e0d1ff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    padding: 10px 8px;
+    border: 1px solid #3a466b;
+    white-space: normal;
+}
+
+.ai-message table.ai-markdown-table td {
+    color: #e0e6f5;
+    font-size: 10px;
+    padding: 9px 8px;
+    border: 1px solid #303c60;
+    overflow-wrap: anywhere;
+    min-width: 0;
+}
+
+.ai-message table.ai-markdown-table tr:nth-child(even) {
+    background: rgba(255,255,255,.035);
+}
+
+/* Inline code */
+
+.ai-message code {
+    background: #0b1122;
+    color: #c9aaff;
+    border: 1px solid #303c60;
+    border-radius: 5px;
+    padding: 2px 5px;
+    font-family: monospace;
+    font-size: .92em;
+    overflow-wrap: anywhere;
+}
+
+/* Blockquotes */
+
+.ai-message blockquote {
+    margin: 12px 0;
+    padding: 9px 12px;
+    border-left: 3px solid var(--purple);
+    background: rgba(155,107,255,.08);
+    color: #c4cce0;
+    border-radius: 0 7px 7px 0;
+}
+
+/* Markdown dividers */
+
+.ai-message hr {
+    border: 0;
+    border-top: 1px solid #394568;
+    margin: 15px 0;
+}
+
+/* Paragraph spacing */
+
+.ai-message p {
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+.ai-message ul,
+.ai-message ol {
+    line-height: 1.8;
+}
+
+.ai-message li::marker {
+    color: #b99aff;
+}
+
+/* Assistant message readability */
+
+.ai-message.assistant {
+    max-width: 94%;
+    line-height: 1.8;
+}
+
+/* User messages should remain simple */
+
+.ai-message.user {
+    white-space: pre-wrap;
+}
+
+/* Mobile table adjustments */
+
+@media(max-width: 700px) {
+
+    .ai-message table.ai-markdown-table {
+        font-size: 9px;
+    }
+
+    .ai-message table.ai-markdown-table th,
+    .ai-message table.ai-markdown-table td {
+        padding: 7px 5px;
+        font-size: 9px;
+    }
+
+    .ai-message h1 {
+        font-size: 16px;
+    }
+
+    .ai-message h2 {
+        font-size: 14px;
+    }
+
+    .ai-message h3 {
+        font-size: 12px;
+    }
+
+}
