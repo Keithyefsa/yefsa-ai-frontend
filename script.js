@@ -4,7 +4,7 @@
 // ==========================================
 // YEFSATECH - YEFSA AI
 // Main frontend JavaScript
-// Connected to BMY Business AI
+// Integrated with BMY Business AI
 // ==========================================
 
 
@@ -34,25 +34,25 @@ const developerBtn =
 
 
 // ==========================================
-// 2. CONFIGURATION
+// 2. API CONFIGURATION
 // ==========================================
 
 const API_BASE_URL =
     "https://yefsa-ai-backend.onrender.com";
 
-const API_URL =
-    `${API_BASE_URL}/chat`;
+const API_URL = `${API_BASE_URL}/chat`;
 
 const MEMORY_API_URL =
     `${API_BASE_URL}/memory`;
 
-const BMY_AI_URL =
+const BMY_CHAT_URL =
     `${API_BASE_URL}/bmy/business`;
 
-const BMY_TOKEN_KEY =
-    "bmy_auth_token";
+const BMY_TOKEN_KEY = "bmy_auth_token";
 
-const BMY_BUSINESS_KEY =
+const BMY_BUSINESSES_KEY = "bmy_businesses";
+
+const BMY_SELECTED_BUSINESS_KEY =
     "bmy_selected_business";
 
 const CONVERSATIONS_KEY =
@@ -70,8 +70,6 @@ const MEMORY_KEY =
 const WELCOME_MESSAGE =
     "Hello! I'm Yefsa AI. How can I help you today?";
 
-const MAX_HISTORY_MESSAGES = 12;
-
 
 // ==========================================
 // 3. APPLICATION DATA
@@ -82,19 +80,21 @@ let activeChatId = null;
 
 
 // ==========================================
-// 4. GENERATE UNIQUE CHAT ID
+// 4. UNIQUE CHAT ID
 // ==========================================
 
 function makeId() {
 
-    return Date.now().toString() +
-        Math.random().toString(16).slice(2);
+    return (
+        Date.now().toString() +
+        Math.random().toString(16).slice(2)
+    );
 
 }
 
 
 // ==========================================
-// 5. GET ACTIVE CONVERSATION
+// 5. ACTIVE CONVERSATION
 // ==========================================
 
 function getActiveChat() {
@@ -132,71 +132,60 @@ function getBmyToken() {
 }
 
 
-// GET THE CURRENTLY SELECTED BUSINESS
+// ==========================================
+// 7. GET SELECTED BMY BUSINESS
+// ==========================================
 
-function getSelectedBmyBusinessId() {
+function getSelectedBmyBusiness() {
 
     try {
 
         const savedBusiness =
-            sessionStorage.getItem(BMY_BUSINESS_KEY);
+            sessionStorage.getItem(
+                BMY_SELECTED_BUSINESS_KEY
+            );
 
         if (!savedBusiness) {
             return null;
         }
 
-        let business = savedBusiness;
-
-        try {
-
-            business = JSON.parse(savedBusiness);
-
-        } catch (error) {
-
-            // It may already be a plain business ID.
-
-        }
+        const business = JSON.parse(
+            savedBusiness
+        );
 
         if (
-            typeof business === "number" ||
-            typeof business === "string"
+            !business ||
+            typeof business !== "object"
         ) {
-
-            const id = String(business).trim();
-
-            return /^\d+$/.test(id) ? id : null;
-
+            return null;
         }
+
+        // Support the business object structures
+        // used by the BMY frontend.
+
+        const businessId =
+            business.id ??
+            business.business_id ??
+            business.businessId;
 
         if (
-            business &&
-            typeof business === "object"
+            businessId === undefined ||
+            businessId === null ||
+            !Number.isInteger(Number(businessId)) ||
+            Number(businessId) <= 0
         ) {
-
-            const possibleId =
-                business.id ??
-                business.business_id ??
-                business.businessId;
-
-            if (
-                possibleId !== undefined &&
-                possibleId !== null
-            ) {
-
-                const id = String(possibleId).trim();
-
-                return /^\d+$/.test(id) ? id : null;
-
-            }
-
+            return null;
         }
 
-        return null;
+        return {
+            ...business,
+            id: Number(businessId)
+        };
 
     } catch (error) {
 
         console.error(
-            "BMY business selection error:",
+            "Selected business loading error:",
             error
         );
 
@@ -207,33 +196,41 @@ function getSelectedBmyBusinessId() {
 }
 
 
-// DETECT WHETHER THE USER IS USING BMY
+// ==========================================
+// 8. DETECT BMY AI SESSION
+// ==========================================
 
 function getBmySession() {
 
     const token = getBmyToken();
 
     if (!token) {
+        return null;
+    }
+
+    const business = getSelectedBmyBusiness();
+
+    if (!business) {
 
         return {
-            active: false,
-            token: null,
-            businessId: null
+            authenticated: true,
+            business: null,
+            token
         };
 
     }
 
     return {
-        active: true,
-        token: token,
-        businessId: getSelectedBmyBusinessId()
+        authenticated: true,
+        business,
+        token
     };
 
 }
 
 
 // ==========================================
-// 7. LONG-TERM MEMORY
+// 9. LONG-TERM MEMORY
 // ==========================================
 
 function loadMemories() {
@@ -297,16 +294,21 @@ function addMemory(memory) {
 
     const cleanMemory = memory.trim();
 
-    if (!cleanMemory) return false;
+    if (!cleanMemory) {
+        return false;
+    }
 
     const memories = loadMemories();
 
     const alreadyExists = memories.some(
         item =>
-            item.toLowerCase() === cleanMemory.toLowerCase()
+            item.toLowerCase() ===
+            cleanMemory.toLowerCase()
     );
 
-    if (alreadyExists) return true;
+    if (alreadyExists) {
+        return true;
+    }
 
     memories.push(cleanMemory);
 
@@ -316,7 +318,7 @@ function addMemory(memory) {
 
 
 // ==========================================
-// 8. SAVE CONVERSATIONS
+// 10. SAVE CONVERSATIONS
 // ==========================================
 
 function saveConversations() {
@@ -356,7 +358,7 @@ function saveConversations() {
 
 
 // ==========================================
-// 9. MARKDOWN MESSAGE RENDERER
+// 11. MARKDOWN MESSAGE RENDERER
 // ==========================================
 
 function renderFormattedMessage(container, text) {
@@ -375,11 +377,16 @@ function renderFormattedMessage(container, text) {
         let lastIndex = 0;
         let match;
 
-        while ((match = pattern.exec(content)) !== null) {
+        while (
+            (match = pattern.exec(content)) !== null
+        ) {
 
             parent.appendChild(
                 document.createTextNode(
-                    content.slice(lastIndex, match.index)
+                    content.slice(
+                        lastIndex,
+                        match.index
+                    )
                 )
             );
 
@@ -431,9 +438,7 @@ function renderFormattedMessage(container, text) {
     let codeContent = [];
 
     function closeList() {
-
         currentList = null;
-
     }
 
 
@@ -454,8 +459,6 @@ function renderFormattedMessage(container, text) {
 
 
     lines.forEach(line => {
-
-        // CODE BLOCKS
 
         if (line.trim().startsWith("```")) {
 
@@ -487,8 +490,6 @@ function renderFormattedMessage(container, text) {
 
         }
 
-
-        // EMPTY LINES
 
         if (!line.trim()) {
 
@@ -540,7 +541,7 @@ function renderFormattedMessage(container, text) {
         }
 
 
-        // BULLET AND NUMBERED LISTS
+        // LISTS
 
         const listMatch = line.match(
             /^(\s*)([-*+]|\d+\.)\s+(.+)$/
@@ -586,7 +587,7 @@ function renderFormattedMessage(container, text) {
         closeList();
 
 
-        // NORMAL PARAGRAPHS
+        // NORMAL PARAGRAPH
 
         const paragraph = document.createElement("p");
 
@@ -600,19 +601,15 @@ function renderFormattedMessage(container, text) {
     });
 
 
-    // CLOSE AN UNFINISHED CODE BLOCK
-
     if (codeBlock) {
-
         addCodeBlock();
-
     }
 
 }
 
 
 // ==========================================
-// 10. MESSAGE STYLING
+// 12. MESSAGE STYLING
 // ==========================================
 
 function styleMessage(message, sender) {
@@ -637,12 +634,18 @@ function styleMessage(message, sender) {
 
 
 // ==========================================
-// 11. ADD MESSAGE TO CHAT
+// 13. ADD MESSAGE
 // ==========================================
 
-function addMessage(text, sender, shouldSave = true) {
+function addMessage(
+    text,
+    sender,
+    shouldSave = true
+) {
 
-    if (!chatBox) return null;
+    if (!chatBox) {
+        return null;
+    }
 
     const message = document.createElement("div");
 
@@ -650,7 +653,10 @@ function addMessage(text, sender, shouldSave = true) {
 
     if (sender === "bot") {
 
-        renderFormattedMessage(message, text);
+        renderFormattedMessage(
+            message,
+            text
+        );
 
     } else {
 
@@ -667,9 +673,7 @@ function addMessage(text, sender, shouldSave = true) {
     chatBox.scrollTop = chatBox.scrollHeight;
 
     if (shouldSave) {
-
         saveActiveChat();
-
     }
 
     return message;
@@ -678,14 +682,16 @@ function addMessage(text, sender, shouldSave = true) {
 
 
 // ==========================================
-// 12. SAVE ACTIVE CHAT
+// 14. SAVE ACTIVE CHAT
 // ==========================================
 
 function saveActiveChat() {
 
     const chat = getActiveChat();
 
-    if (!chat || !chatBox) return;
+    if (!chat || !chatBox) {
+        return;
+    }
 
     chat.messages = Array.from(
         chatBox.querySelectorAll(".message")
@@ -730,21 +736,25 @@ function saveActiveChat() {
 
 
 // ==========================================
-// 13. DISPLAY ACTIVE CONVERSATION
+// 15. DISPLAY ACTIVE CONVERSATION
 // ==========================================
 
 function renderActiveChat() {
 
     const chat = getActiveChat();
 
-    if (!chat || !chatBox) return;
+    if (!chat || !chatBox) {
+        return;
+    }
 
     chatBox.innerHTML = "";
 
     chat.messages.forEach(item => {
 
         const sender =
-            item.sender === "user" ? "user" : "bot";
+            item.sender === "user"
+                ? "user"
+                : "bot";
 
         const message = document.createElement("div");
 
@@ -781,7 +791,7 @@ function renderActiveChat() {
 
 
 // ==========================================
-// 14. CREATE NEW CHAT
+// 16. CREATE NEW CHAT
 // ==========================================
 
 function startNewChat() {
@@ -801,11 +811,7 @@ function startNewChat() {
                 text: WELCOME_MESSAGE,
                 sender: "bot"
             }
-        ],
-
-        // Business association is assigned
-        // when the first message is sent.
-        bmyBusinessId: null
+        ]
 
     };
 
@@ -818,16 +824,14 @@ function startNewChat() {
     renderActiveChat();
 
     if (dropdownMenu) {
-
         dropdownMenu.hidden = true;
-
     }
 
 }
 
 
 // ==========================================
-// 15. LOAD PREVIOUS CONVERSATIONS
+// 17. LOAD CONVERSATIONS
 // ==========================================
 
 function loadConversations() {
@@ -856,7 +860,7 @@ function loadConversations() {
         }
 
 
-        // MIGRATE OLDER CONVERSATION
+        // MIGRATE OLD CONVERSATIONS
 
         if (conversations.length === 0) {
 
@@ -883,9 +887,7 @@ function loadConversations() {
 
                         messages: oldMessages,
 
-                        customTitle: false,
-
-                        bmyBusinessId: null
+                        customTitle: false
 
                     });
 
@@ -910,9 +912,7 @@ function loadConversations() {
         );
 
         if (!getActiveChat()) {
-
             activeChatId = conversations[0].id;
-
         }
 
         renderActiveChat();
@@ -938,7 +938,7 @@ function loadConversations() {
 
 
 // ==========================================
-// 16. SAVE MEMORY
+// 18. SAVE MEMORY
 // ==========================================
 
 async function rememberInformation(memory) {
@@ -1016,7 +1016,7 @@ async function rememberInformation(memory) {
     }
 
 
-    // GUEST ACCOUNT
+    // GUEST MEMORY
 
     const saved = addMemory(cleanMemory);
 
@@ -1034,64 +1034,49 @@ async function rememberInformation(memory) {
 
 
 // ==========================================
-// 17. PREPARE CONVERSATION HISTORY
+// 19. DETECT BUSINESS REVIEW REQUEST
 // ==========================================
 
-// NORMAL YEFSA AI HISTORY FORMAT
+function isBusinessReviewRequest(message) {
 
-function getNormalHistory(chat) {
+    const text = message.toLowerCase();
 
-    if (!chat || !Array.isArray(chat.messages)) {
-        return [];
-    }
+    const patterns = [
 
-    return chat.messages
+        /\breview my business\b/,
+        /\breview (the )?business performance\b/,
+        /\bbusiness performance review\b/,
+        /\banaly[sz]e my business\b/,
+        /\banaly[sz]e business performance\b/,
+        /\bfull business review\b/,
+        /\bcomprehensive business review\b/,
+        /\bgive me a business review\b/,
+        /\bhow is my business performing\b/,
+        /\bhow is the business performing\b/,
+        /\bprepare a business performance review\b/
 
-        .filter(item =>
-            item.sender === "user" ||
-            item.sender === "bot"
-        )
+    ];
 
-        .filter(item =>
-            item.text !== WELCOME_MESSAGE
-        )
-
-        .slice(-20)
-
-        .map(item => ({
-
-            role: item.sender === "user"
-                ? "user"
-                : "model",
-
-            text: item.text
-
-        }));
+    return patterns.some(
+        pattern => pattern.test(text)
+    );
 
 }
 
 
-// BMY BUSINESS AI HISTORY FORMAT
+// ==========================================
+// 20. PREPARE CONVERSATION HISTORY
+// ==========================================
 
-function getBmyHistory(chat, businessId) {
+function getConversationHistory() {
 
-    if (!chat || !Array.isArray(chat.messages)) {
+    const activeChat = getActiveChat();
+
+    if (!activeChat) {
         return [];
     }
 
-    // Never transfer conversation history
-    // between different businesses.
-
-    if (
-        chat.bmyBusinessId &&
-        String(chat.bmyBusinessId) !== String(businessId)
-    ) {
-
-        return [];
-
-    }
-
-    return chat.messages
+    return activeChat.messages
 
         .filter(item =>
             item.sender === "user" ||
@@ -1102,7 +1087,7 @@ function getBmyHistory(chat, businessId) {
             item.text !== WELCOME_MESSAGE
         )
 
-        .slice(-MAX_HISTORY_MESSAGES)
+        .slice(-12)
 
         .map(item => ({
 
@@ -1110,7 +1095,7 @@ function getBmyHistory(chat, businessId) {
                 ? "user"
                 : "assistant",
 
-            content: String(item.text || "").slice(0, 4000)
+            content: String(item.text || "")
 
         }));
 
@@ -1118,10 +1103,152 @@ function getBmyHistory(chat, businessId) {
 
 
 // ==========================================
-// 18. READ SERVER RESPONSE
+// 21. SEND REQUEST TO NORMAL YEFSA AI
 // ==========================================
 
-async function readApiResponse(response) {
+async function sendToNormalYefsaAI(
+    message,
+    history
+) {
+
+    const token = getBmyToken();
+
+    const headers = {
+
+        "Content-Type": "application/json"
+
+    };
+
+    if (token) {
+
+        headers["Authorization"] =
+            "Bearer " + token;
+
+    }
+
+    const response = await fetch(
+        API_URL,
+        {
+
+            method: "POST",
+
+            headers,
+
+            body: JSON.stringify({
+
+                message,
+
+                history: history.map(item => ({
+
+                    role: item.role === "assistant"
+                        ? "model"
+                        : "user",
+
+                    text: item.content
+
+                })),
+
+                memories: token
+                    ? []
+                    : loadMemories()
+
+            })
+
+        }
+    );
+
+    return readAIResponse(response);
+
+}
+
+
+// ==========================================
+// 22. SEND REQUEST TO BMY BUSINESS AI
+// ==========================================
+
+async function sendToBmyAI(
+    message,
+    history,
+    session
+) {
+
+    if (!session || !session.business) {
+
+        throw new Error(
+            "You are logged into BMY, but no business is selected. Open BMY, select your business, and return to Yefsa AI."
+        );
+
+    }
+
+    const businessId = session.business.id;
+
+    const reviewRequest =
+        isBusinessReviewRequest(message);
+
+    const endpoint = reviewRequest
+
+        ? `${BMY_CHAT_URL}/${businessId}/ai/review`
+
+        : `${BMY_CHAT_URL}/${businessId}/ai/chat`;
+
+
+    console.log(
+        "Yefsa AI is connected to BMY business:",
+        businessId
+    );
+
+    console.log(
+        "BMY AI endpoint:",
+        endpoint
+    );
+
+
+    const requestOptions = {
+
+        method: "POST",
+
+        headers: {
+
+            "Content-Type": "application/json",
+
+            "Authorization": "Bearer " + session.token
+
+        }
+
+    };
+
+
+    // The review endpoint generates its own
+    // business review and accepts no request body.
+
+    if (!reviewRequest) {
+
+        requestOptions.body = JSON.stringify({
+
+            message,
+
+            history
+
+        });
+
+    }
+
+
+    const response = await fetch(
+        endpoint,
+        requestOptions
+    );
+
+    return readAIResponse(response);
+
+}
+
+
+// ==========================================
+// 23. READ AI RESPONSE
+// ==========================================
+
+async function readAIResponse(response) {
 
     const responseText = await response.text();
 
@@ -1141,11 +1268,17 @@ async function readApiResponse(response) {
     }
 
 
+    console.log(
+        "AI response:",
+        data
+    );
+
+
     if (!response.ok) {
 
         throw new Error(
-            data.message ||
             data.error ||
+            data.message ||
             "Server error. HTTP " + response.status
         );
 
@@ -1164,134 +1297,13 @@ async function readApiResponse(response) {
 
     }
 
-    return data;
+    return data.reply.trim();
 
 }
 
 
 // ==========================================
-// 19. SEND MESSAGE TO NORMAL YEFSA AI
-// ==========================================
-
-async function sendToNormalYefsaAI(message, chat) {
-
-    const history = getNormalHistory(chat);
-
-    const requestBody = {
-
-        message: message,
-
-        history: history,
-
-        memories: loadMemories()
-
-    };
-
-
-    const response = await fetch(
-        API_URL,
-        {
-
-            method: "POST",
-
-            headers: {
-
-                "Content-Type": "application/json"
-
-            },
-
-            body: JSON.stringify(requestBody)
-
-        }
-    );
-
-
-    return await readApiResponse(response);
-
-}
-
-
-// ==========================================
-// 20. SEND MESSAGE TO BMY BUSINESS AI
-// ==========================================
-
-async function sendToBmyAI(message, chat, session) {
-
-    if (!session.token) {
-
-        throw new Error(
-            "Your BMY login session is missing. Please log in again."
-        );
-
-    }
-
-    if (!session.businessId) {
-
-        throw new Error(
-            "BMY is connected, but no business is selected. Open BMY and select a business first."
-        );
-
-    }
-
-
-    const businessId = session.businessId;
-
-    const history = getBmyHistory(
-        chat,
-        businessId
-    );
-
-
-    const endpoint =
-        `${BMY_AI_URL}/${encodeURIComponent(businessId)}/ai/chat`;
-
-
-    console.log(
-        "Sending message to BMY Business AI:",
-        endpoint
-    );
-
-
-    const response = await fetch(
-        endpoint,
-        {
-
-            method: "POST",
-
-            headers: {
-
-                "Content-Type": "application/json",
-
-                "Authorization": "Bearer " + session.token
-
-            },
-
-            body: JSON.stringify({
-
-                message: message,
-
-                history: history
-
-            })
-
-        }
-    );
-
-
-    const data = await readApiResponse(response);
-
-
-    // Remember which business owns this conversation.
-
-    chat.bmyBusinessId = businessId;
-
-    return data;
-
-}
-
-
-// ==========================================
-// 21. SEND MESSAGE TO YEFSA AI
+// 24. MAIN SEND MESSAGE FUNCTION
 // ==========================================
 
 async function sendMessage() {
@@ -1308,10 +1320,12 @@ async function sendMessage() {
 
     const message = userInput.value.trim();
 
-    if (!message || sendBtn.disabled) return;
+    if (!message || sendBtn.disabled) {
+        return;
+    }
 
 
-    // HANDLE EXPLICIT MEMORY REQUESTS
+    // HANDLE MEMORY REQUESTS
 
     const rememberMatch = message.match(
         /^remember that\s+(.+)/i
@@ -1329,9 +1343,8 @@ async function sendMessage() {
 
         try {
 
-            const storageType = await rememberInformation(
-                memory
-            );
+            const storageType =
+                await rememberInformation(memory);
 
             if (storageType === "account") {
 
@@ -1375,9 +1388,9 @@ async function sendMessage() {
     }
 
 
-    const activeChat = getActiveChat();
+    // GET HISTORY BEFORE ADDING THE NEW MESSAGE
 
-    const bmySession = getBmySession();
+    const history = getConversationHistory();
 
 
     // DISPLAY USER MESSAGE
@@ -1389,7 +1402,7 @@ async function sendMessage() {
     sendBtn.disabled = true;
 
 
-    // DISPLAY THINKING INDICATOR
+    // THINKING INDICATOR
 
     const thinking = addMessage(
         "Thinking...",
@@ -1397,42 +1410,47 @@ async function sendMessage() {
         false
     );
 
-    if (thinking) {
-
-        thinking.classList.add("thinking");
-
-    }
+    thinking.classList.add("thinking");
 
 
     try {
 
-        let data;
+        // CHECK BMY LOGIN AND BUSINESS SELECTION
+
+        const bmySession = getBmySession();
+
+        let reply;
 
 
-        // BMY SESSION ACTIVE
+        if (bmySession && bmySession.authenticated) {
 
-        if (bmySession.active) {
+            // A BMY LOGIN EXISTS.
+            // DO NOT SILENTLY FALL BACK TO GENERAL AI.
 
-            data = await sendToBmyAI(
+            if (!bmySession.business) {
+
+                throw new Error(
+                    "You're logged into BMY, but no business is selected. Open BMY, select Test Business, and return to Yefsa AI."
+                );
+
+            }
+
+
+            // CONNECT TO THE SELECTED BUSINESS
+
+            reply = await sendToBmyAI(
                 message,
-                activeChat,
+                history,
                 bmySession
             );
 
-
-            // Mark this conversation as belonging
-            // to the selected BMY business.
-
-            activeChat.bmyBusinessId =
-                bmySession.businessId;
-
         } else {
 
-            // NORMAL YEFSA AI
+            // NORMAL YEFSA AI FOR GUEST USERS
 
-            data = await sendToNormalYefsaAI(
+            reply = await sendToNormalYefsaAI(
                 message,
-                activeChat
+                history
             );
 
         }
@@ -1442,7 +1460,7 @@ async function sendMessage() {
 
         renderFormattedMessage(
             thinking,
-            data.reply
+            reply
         );
 
         thinking.classList.remove("thinking");
@@ -1459,20 +1477,8 @@ async function sendMessage() {
             error
         );
 
-        let errorMessage =
+        const errorMessage =
             "Connection error: " + error.message;
-
-
-        if (
-            error.message &&
-            error.message.toLowerCase().includes("login session")
-        ) {
-
-            errorMessage =
-                "Your BMY login session may have expired. Please log in to BMY again.";
-
-        }
-
 
         thinking.textContent = errorMessage;
 
@@ -1497,7 +1503,7 @@ async function sendMessage() {
 
 
 // ==========================================
-// 22. OPEN AND CLOSE MENU
+// 25. OPEN AND CLOSE MENU
 // ==========================================
 
 if (menuBtn && dropdownMenu) {
@@ -1508,7 +1514,8 @@ if (menuBtn && dropdownMenu) {
 
             event.stopPropagation();
 
-            dropdownMenu.hidden = !dropdownMenu.hidden;
+            dropdownMenu.hidden =
+                !dropdownMenu.hidden;
 
         }
     );
@@ -1534,7 +1541,7 @@ if (menuBtn && dropdownMenu) {
 
 
 // ==========================================
-// 23. NEW CHAT BUTTON
+// 26. NEW CHAT BUTTON
 // ==========================================
 
 if (newChatBtn) {
@@ -1552,7 +1559,7 @@ if (newChatBtn) {
 
 
 // ==========================================
-// 24. DELETE CURRENT CHAT
+// 27. DELETE CURRENT CHAT
 // ==========================================
 
 if (deleteChatBtn) {
@@ -1562,16 +1569,16 @@ if (deleteChatBtn) {
         function() {
 
             if (dropdownMenu) {
-
                 dropdownMenu.hidden = true;
-
             }
 
             const confirmed = confirm(
                 "Delete this conversation?"
             );
 
-            if (!confirmed) return;
+            if (!confirmed) {
+                return;
+            }
 
             conversations = conversations.filter(
                 chat => chat.id !== activeChatId
@@ -1598,12 +1605,14 @@ if (deleteChatBtn) {
 
 
 // ==========================================
-// 25. DISPLAY CHAT HISTORY
+// 28. DISPLAY CHAT HISTORY
 // ==========================================
 
 function renderHistory() {
 
-    if (!historyList) return;
+    if (!historyList) {
+        return;
+    }
 
     historyList.innerHTML = "";
 
@@ -1635,7 +1644,8 @@ function renderHistory() {
 
         const title = document.createElement("strong");
 
-        title.textContent = chat.title || "New Chat";
+        title.textContent =
+            chat.title || "New Chat";
 
 
         const date = document.createElement("small");
@@ -1661,9 +1671,7 @@ function renderHistory() {
                 renderActiveChat();
 
                 if (historyPanel) {
-
                     historyPanel.hidden = true;
-
                 }
 
             }
@@ -1692,7 +1700,9 @@ function renderHistory() {
                     chat.title
                 );
 
-                if (!newTitle || !newTitle.trim()) return;
+                if (!newTitle || !newTitle.trim()) {
+                    return;
+                }
 
                 chat.title = newTitle.trim();
 
@@ -1708,7 +1718,7 @@ function renderHistory() {
         );
 
 
-        // DELETE CONVERSATION FROM HISTORY
+        // DELETE CONVERSATION
 
         const deleteBtn = document.createElement("button");
 
@@ -1731,7 +1741,9 @@ function renderHistory() {
                     "'?"
                 );
 
-                if (!confirmed) return;
+                if (!confirmed) {
+                    return;
+                }
 
                 conversations = conversations.filter(
                     item => item.id !== chat.id
@@ -1739,9 +1751,10 @@ function renderHistory() {
 
                 if (activeChatId === chat.id) {
 
-                    activeChatId = conversations.length > 0
-                        ? conversations[0].id
-                        : null;
+                    activeChatId =
+                        conversations.length > 0
+                            ? conversations[0].id
+                            : null;
 
                 }
 
@@ -1777,7 +1790,7 @@ function renderHistory() {
 
 
 // ==========================================
-// 26. OPEN CHAT HISTORY
+// 29. OPEN CHAT HISTORY
 // ==========================================
 
 if (historyBtn) {
@@ -1787,17 +1800,13 @@ if (historyBtn) {
         function() {
 
             if (dropdownMenu) {
-
                 dropdownMenu.hidden = true;
-
             }
 
             renderHistory();
 
             if (historyPanel) {
-
                 historyPanel.hidden = false;
-
             }
 
         }
@@ -1807,7 +1816,7 @@ if (historyBtn) {
 
 
 // ==========================================
-// 27. CLOSE CHAT HISTORY
+// 30. CLOSE CHAT HISTORY
 // ==========================================
 
 if (closeHistoryBtn && historyPanel) {
@@ -1825,7 +1834,7 @@ if (closeHistoryBtn && historyPanel) {
 
 
 // ==========================================
-// 28. SUBSCRIBE OPTION
+// 31. SUBSCRIBE OPTION
 // ==========================================
 
 if (subscribeBtn) {
@@ -1835,9 +1844,7 @@ if (subscribeBtn) {
         function() {
 
             if (dropdownMenu) {
-
                 dropdownMenu.hidden = true;
-
             }
 
             alert(
@@ -1851,7 +1858,7 @@ if (subscribeBtn) {
 
 
 // ==========================================
-// 29. CHAT WITH DEVELOPER OPTION
+// 32. CHAT WITH DEVELOPER
 // ==========================================
 
 if (developerBtn) {
@@ -1861,9 +1868,7 @@ if (developerBtn) {
         function() {
 
             if (dropdownMenu) {
-
                 dropdownMenu.hidden = true;
-
             }
 
             alert(
@@ -1877,7 +1882,7 @@ if (developerBtn) {
 
 
 // ==========================================
-// 30. SEND BUTTON
+// 33. SEND BUTTON
 // ==========================================
 
 if (sendBtn) {
@@ -1891,7 +1896,7 @@ if (sendBtn) {
 
 
 // ==========================================
-// 31. ENTER KEY
+// 34. ENTER KEY
 // ==========================================
 
 if (userInput) {
@@ -1918,14 +1923,14 @@ if (userInput) {
 
 
 // ==========================================
-// 32. START APPLICATION
+// 35. START APPLICATION
 // ==========================================
 
 loadConversations();
 
 
 // ==========================================
-// 33. REGISTER SERVICE WORKER
+// 36. REGISTER SERVICE WORKER
 // ==========================================
 
 if ("serviceWorker" in navigator) {
@@ -1962,7 +1967,7 @@ if ("serviceWorker" in navigator) {
 
 
 // ==========================================
-// YEFSATECH HOME SCREEN AND NAVIGATION
+// 37. YEFSATECH HOME SCREEN AND NAVIGATION
 // ==========================================
 
 (function () {
@@ -1994,11 +1999,13 @@ if ("serviceWorker" in navigator) {
         document.getElementById("backHomeFromBmyBtn");
 
 
-    // DISPLAY GREETING USING LOCAL TIME
+    // GREETING
 
     function updateWelcomeGreeting() {
 
-        if (!welcomeGreeting) return;
+        if (!welcomeGreeting) {
+            return;
+        }
 
         const now = new Date();
 
@@ -2032,30 +2039,31 @@ if ("serviceWorker" in navigator) {
     }
 
 
-    // SHOW A SELECTED SCREEN
+    // SHOW SELECTED SCREEN
 
     function showScreen(screen) {
 
         if (homeScreen) {
 
-            homeScreen.hidden = screen !== "home";
+            homeScreen.hidden =
+                screen !== "home";
 
         }
 
         if (chatScreen) {
 
-            chatScreen.hidden = screen !== "chat";
+            chatScreen.hidden =
+                screen !== "chat";
 
         }
 
         if (bmyScreen) {
 
-            bmyScreen.hidden = screen !== "bmy";
+            bmyScreen.hidden =
+                screen !== "bmy";
 
         }
 
-
-        // CLOSE CHAT MENUS WHEN LEAVING CHAT
 
         if (screen !== "chat") {
 
@@ -2066,15 +2074,11 @@ if ("serviceWorker" in navigator) {
                 document.getElementById("historyPanel");
 
             if (menu) {
-
                 menu.hidden = true;
-
             }
 
             if (history) {
-
                 history.hidden = true;
-
             }
 
         }
@@ -2100,7 +2104,7 @@ if ("serviceWorker" in navigator) {
     }
 
 
-    // OPEN BMY APPLICATION
+    // OPEN BMY
 
     if (openBmyBtn) {
 
@@ -2117,7 +2121,7 @@ if ("serviceWorker" in navigator) {
     }
 
 
-    // RETURN FROM YEFSA AI TO HOME
+    // RETURN HOME FROM CHAT
 
     if (backHomeFromChatBtn) {
 
@@ -2133,7 +2137,7 @@ if ("serviceWorker" in navigator) {
     }
 
 
-    // RETURN FROM BMY TO HOME
+    // RETURN HOME FROM BMY
 
     if (backHomeFromBmyBtn) {
 
@@ -2149,7 +2153,7 @@ if ("serviceWorker" in navigator) {
     }
 
 
-    // INITIALIZE HOME SCREEN
+    // INITIALIZE HOME
 
     updateWelcomeGreeting();
 
