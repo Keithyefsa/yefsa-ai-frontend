@@ -126,6 +126,10 @@ function read() {
 
 let data = read();
 
+// Business records are server-owned. Never hydrate customers from shared
+// browser storage, which could expose one business's records to another.
+data.customers = [];
+
 function persist() {
     try {
         localStorage.setItem(
@@ -203,22 +207,40 @@ if ($("menu")) {
 ========================================== */
 
 if ($("customerForm")) {
-    $("customerForm").addEventListener("submit", event => {
+    $("customerForm").addEventListener("submit", async event => {
         event.preventDefault();
 
-        data.customers.unshift({
-            id: makeId(),
-            name: $("customerName").value.trim(),
-            phone: $("customerPhone").value.trim(),
-            email: $("customerEmail").value.trim(),
-            date: date()
-        });
+        const business = bmyGetSelectedBusiness();
+        if (!business) {
+            toast("Select a business before adding customers.");
+            return;
+        }
 
-        event.target.reset();
+        const submitButton = event.target.querySelector('button[type="submit"]');
+        if (submitButton) submitButton.disabled = true;
 
-        persist();
+        try {
+            await bmyRequest(
+                `/bmy/business/${business.business_id}/customers`,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        full_name: $("customerName").value.trim(),
+                        phone: $("customerPhone").value.trim() || null,
+                        email: $("customerEmail").value.trim() || null
+                    })
+                }
+            );
 
-        toast("Customer added.");
+            event.target.reset();
+            await bmyLoadCustomers();
+            toast("Customer saved successfully.");
+        } catch (error) {
+            console.error("BMY customer creation error:", error);
+            toast(error.message || "Customer could not be saved.");
+        } finally {
+            if (submitButton) submitButton.disabled = false;
+        }
     });
 }
 
@@ -392,21 +414,43 @@ if ($("settingsForm")) {
    10. DELETE RECORDS
 ========================================== */
 
-document.addEventListener("click", event => {
+document.addEventListener("click", async event => {
     const button = event.target.closest("[data-remove]");
 
     if (!button) return;
 
     const type = button.dataset.remove;
 
+    // Customer records are deleted through the authenticated business API.
+    if (type === "customers") {
+        const business = bmyGetSelectedBusiness();
+        if (!business) {
+            toast("Select a business first.");
+            return;
+        }
+        if (!window.confirm("Delete this customer? This cannot be undone.")) return;
+
+        button.disabled = true;
+        try {
+            await bmyRequest(
+                `/bmy/business/${business.business_id}/customers/${encodeURIComponent(button.dataset.id)}`,
+                { method: "DELETE" }
+            );
+            await bmyLoadCustomers();
+            toast("Customer deleted.");
+        } catch (error) {
+            console.error("BMY customer deletion error:", error);
+            toast(error.message || "Customer could not be deleted.");
+            button.disabled = false;
+        }
+        return;
+    }
+
+    // Other legacy modules remain unchanged until their own backend migration.
     if (!Array.isArray(data[type])) return;
 
-    data[type] = data[type].filter(record => {
-        return record.id !== button.dataset.id;
-    });
-
+    data[type] = data[type].filter(record => record.id !== button.dataset.id);
     persist();
-
     toast("Record removed.");
 });
 
@@ -987,6 +1031,56 @@ async function bmyRequest(path, options = {}) {
     }
 
     return result;
+}
+
+
+function bmyGetSelectedBusiness() {
+    try {
+        return JSON.parse(sessionStorage.getItem(BMY_SELECTED_KEY) || "null");
+    } catch {
+        return null;
+    }
+}
+
+
+async function bmyLoadCustomers() {
+    const business = bmyGetSelectedBusiness();
+    if (!business || !business.business_id) {
+        data.customers = [];
+        render();
+        return;
+    }
+
+    // Clear any previous business data immediately, before the new request.
+    data.customers = [];
+    render();
+
+    const table = $("customers");
+    if (table) {
+        table.innerHTML = '<tr><td colspan="5" class="empty">Loading customers…</td></tr>';
+    }
+
+    try {
+        const result = await bmyRequest(
+            `/bmy/business/${business.business_id}/customers`
+        );
+        data.customers = (Array.isArray(result.customers) ? result.customers : []).map(customer => ({
+            id: customer.customer_id,
+            name: customer.full_name,
+            phone: customer.phone,
+            email: customer.email,
+            date: customer.created_at ? new Date(customer.created_at).toLocaleDateString() : "—"
+        }));
+        render();
+    } catch (error) {
+        console.error("BMY customer loading error:", error);
+        data.customers = [];
+        render();
+        if (table) {
+            table.innerHTML = `<tr><td colspan="5" class="empty">${safe(error.message || "Customers could not be loaded.")}</td></tr>`;
+        }
+        toast("Could not load customers from the server.");
+    }
 }
 
 
@@ -2285,7 +2379,9 @@ function bmyOpenWorkspace(business) {
 
     go("dashboard");
 
+    // Load business-owned records only after the selected business is verified.
     bmyLoadDashboard();
+    bmyLoadCustomers();
 }
 
 
@@ -2294,6 +2390,10 @@ function bmyOpenWorkspace(business) {
 ========================================== */
 
 function bmyLogout() {
+
+    // Clear in-memory business records when ending the session.
+    data.customers = [];
+    render();
 
     sessionStorage.removeItem(BMY_TOKEN_KEY);
 
