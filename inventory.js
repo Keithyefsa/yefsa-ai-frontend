@@ -141,6 +141,275 @@
         fields.name.focus();
     }
 
+
+    // Stock adjustment and audit-history dialog.
+    let stockDialog = null;
+    let stockDialogProduct = null;
+    let stockDialogMode = "adjust";
+
+    function ensureStockDialog() {
+        if (stockDialog) return stockDialog;
+
+        const dialog = document.createElement("dialog");
+        dialog.id = "bmyStockDialog";
+        dialog.style.cssText = [
+            "width:min(560px,calc(100% - 28px))",
+            "max-height:85vh",
+            "overflow:auto",
+            "border:1px solid #303c60",
+            "border-radius:16px",
+            "padding:0",
+            "background:#11172b",
+            "color:#f3f5ff",
+            "box-shadow:0 24px 80px rgba(0,0,0,.55)"
+        ].join(";");
+
+        dialog.innerHTML = `
+            <div style="padding:20px;border-bottom:1px solid #252e49;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                <div>
+                    <small style="color:#b18cff;letter-spacing:1.4px;font-weight:700">INVENTORY CONTROL</small>
+                    <h2 id="bmyStockDialogTitle" style="font-size:19px;margin:7px 0 4px">Adjust stock</h2>
+                    <p id="bmyStockDialogProduct" style="margin:0;color:#929bb5;font-size:12px"></p>
+                </div>
+                <button type="button" data-stock-close aria-label="Close" class="secondary" style="padding:7px 11px">✕</button>
+            </div>
+            <div id="bmyStockDialogBody" style="padding:20px"></div>
+        `;
+
+        dialog.addEventListener("click", event => {
+            if (event.target === dialog) dialog.close();
+            if (event.target.closest("[data-stock-close]")) dialog.close();
+        });
+
+        document.body.appendChild(dialog);
+        stockDialog = dialog;
+        return dialog;
+    }
+
+    function openStockDialog(product, mode) {
+        if (!product || product.product_id == null) {
+            showMessage("This product is missing its product ID.");
+            return;
+        }
+
+        const business = selectedBusiness();
+        if (!business || !business.business_id) {
+            showMessage("Select a business first.");
+            return;
+        }
+
+        stockDialogProduct = product;
+        stockDialogMode = mode;
+
+        const dialog = ensureStockDialog();
+        const title = dialog.querySelector("#bmyStockDialogTitle");
+        const productLabel = dialog.querySelector("#bmyStockDialogProduct");
+        const body = dialog.querySelector("#bmyStockDialogBody");
+
+        productLabel.textContent =
+            `${product.product_name} · Current stock: ${Number(product.quantity_in_stock || 0)}`;
+
+        if (mode === "history") {
+            title.textContent = "Stock adjustment history";
+            body.innerHTML = `
+                <div id="bmyStockHistory" style="color:#929bb5;text-align:center;padding:20px">Loading adjustment history...</div>
+            `;
+            if (!dialog.open) dialog.showModal();
+            loadStockHistory(product, business.business_id);
+            return;
+        }
+
+        title.textContent = "Adjust stock";
+        body.innerHTML = `
+            <form id="bmyStockAdjustmentForm" style="display:grid;gap:14px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <label style="display:grid;gap:6px;font-size:12px;color:#aeb7d0">
+                        Adjustment type
+                        <select id="bmyStockType" required style="width:100%;padding:11px;border-radius:8px;background:#0a1020;border:1px solid #303c60;color:#fff">
+                            <option value="increase">Increase stock</option>
+                            <option value="decrease">Decrease stock</option>
+                        </select>
+                    </label>
+                    <label style="display:grid;gap:6px;font-size:12px;color:#aeb7d0">
+                        Quantity
+                        <input id="bmyStockQuantity" type="number" min="1" step="1" required placeholder="e.g. 3" style="width:100%;padding:11px;border-radius:8px;background:#0a1020;border:1px solid #303c60;color:#fff">
+                    </label>
+                </div>
+                <label style="display:grid;gap:6px;font-size:12px;color:#aeb7d0">
+                    Reason
+                    <input id="bmyStockReason" type="text" maxlength="2000" required placeholder="Why is the stock changing?" style="width:100%;padding:11px;border-radius:8px;background:#0a1020;border:1px solid #303c60;color:#fff">
+                </label>
+                <label style="display:grid;gap:6px;font-size:12px;color:#aeb7d0">
+                    Notes (optional)
+                    <textarea id="bmyStockNotes" rows="3" maxlength="5000" placeholder="Additional details..." style="width:100%;padding:11px;border-radius:8px;background:#0a1020;border:1px solid #303c60;color:#fff;resize:vertical"></textarea>
+                </label>
+                <p id="bmyStockAdjustmentError" role="alert" style="display:none;margin:0;color:#ff8585;font-size:12px"></p>
+                <div style="display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap">
+                    <button type="button" data-stock-close class="secondary">Cancel</button>
+                    <button id="bmyStockSubmit" type="submit" class="primary">Save adjustment</button>
+                </div>
+            </form>
+        `;
+
+        if (!dialog.open) dialog.showModal();
+
+        const adjustmentForm = body.querySelector("#bmyStockAdjustmentForm");
+        adjustmentForm.addEventListener("submit", submitStockAdjustment);
+    }
+
+    async function submitStockAdjustment(event) {
+        event.preventDefault();
+
+        const product = stockDialogProduct;
+        const business = selectedBusiness();
+        if (!product || !business || !business.business_id) {
+            showMessage("Select a business and product before adjusting stock.");
+            return;
+        }
+
+        const type = document.getElementById("bmyStockType").value;
+        const quantity = Number(document.getElementById("bmyStockQuantity").value);
+        const reason = document.getElementById("bmyStockReason").value.trim();
+        const notes = document.getElementById("bmyStockNotes").value.trim();
+        const errorBox = document.getElementById("bmyStockAdjustmentError");
+        const submit = document.getElementById("bmyStockSubmit");
+
+        if (!Number.isInteger(quantity) || quantity <= 0) {
+            errorBox.textContent = "Enter a whole-number quantity greater than zero.";
+            errorBox.style.display = "block";
+            return;
+        }
+
+        if (!reason) {
+            errorBox.textContent = "Please provide a reason for this adjustment.";
+            errorBox.style.display = "block";
+            return;
+        }
+
+        const businessId = business.business_id;
+        const productId = product.product_id;
+        const currentQuantity = Number(product.quantity_in_stock || 0);
+        const projectedQuantity = type === "increase"
+            ? currentQuantity + quantity
+            : currentQuantity - quantity;
+
+        const confirmation = type === "increase"
+            ? `Increase ${product.product_name} stock by ${quantity} units?`
+            : `Decrease ${product.product_name} stock by ${quantity} units?`;
+
+        if (!confirm(confirmation)) return;
+
+        submit.disabled = true;
+        submit.textContent = "Saving...";
+
+        try {
+            const currentBusiness = selectedBusiness();
+            if (
+                !currentBusiness ||
+                String(currentBusiness.business_id) !== String(businessId)
+            ) {
+                throw new Error("The selected business changed. Please try again.");
+            }
+
+            const result = await bmyRequest(
+                `/bmy/business/${businessId}/stock-adjustments`,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        product_id: productId,
+                        adjustment_type: type,
+                        quantity_changed: quantity,
+                        reason,
+                        notes
+                    })
+                }
+            );
+
+            stockDialog.close();
+            showMessage(
+                result.message ||
+                `Stock adjusted successfully. New quantity: ${result.current_quantity ?? projectedQuantity}.`
+            );
+            await loadInventory();
+
+        } catch (error) {
+            console.error("BMY Stock adjustment error:", error);
+            errorBox.textContent = error.message || "Stock adjustment failed.";
+            errorBox.style.display = "block";
+            submit.disabled = false;
+            submit.textContent = "Save adjustment";
+        }
+    }
+
+    async function loadStockHistory(product, businessId) {
+        const historyContainer = document.getElementById("bmyStockHistory");
+        if (!historyContainer) return;
+
+        try {
+            const result = await bmyRequest(
+                `/bmy/business/${businessId}/stock-adjustments?product_id=${encodeURIComponent(product.product_id)}`
+            );
+
+            if (
+                !stockDialog ||
+                !stockDialog.open ||
+                stockDialogMode !== "history" ||
+                !stockDialogProduct ||
+                String(stockDialogProduct.product_id) !== String(product.product_id)
+            ) return;
+
+            const records = Array.isArray(result.adjustments)
+                ? result.adjustments
+                : [];
+
+            if (!records.length) {
+                historyContainer.innerHTML = `
+                    <p style="text-align:center;padding:20px;color:#929bb5">No stock adjustments recorded for this product yet.</p>
+                `;
+                return;
+            }
+
+            historyContainer.innerHTML = `
+                <div style="display:grid;gap:10px">
+                    ${records.map(record => {
+                        const increase = record.adjustment_type === "increase";
+                        const changed = Number(record.quantity_changed || 0);
+                        const when = record.created_at
+                            ? new Date(record.created_at).toLocaleString()
+                            : "Date unavailable";
+
+                        return `
+                            <article style="padding:13px;border:1px solid #252e49;border-radius:11px;background:#0c1223">
+                                <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+                                    <strong style="color:${increase ? "#75d9a2" : "#ff8585"}">
+                                        ${increase ? "+" : "−"}${changed} units · ${increase ? "Stock increased" : "Stock decreased"}
+                                    </strong>
+                                    <small style="color:#929bb5">#${escapeHTML(record.adjustment_id)}</small>
+                                </div>
+                                <p style="margin:9px 0 5px;color:#e1e6f5;font-size:12px">
+                                    ${Number(record.previous_quantity)} → ${Number(record.new_quantity)}
+                                </p>
+                                <p style="margin:5px 0;color:#c0c9df;font-size:12px">
+                                    ${escapeHTML(record.reason || "No reason supplied")}
+                                </p>
+                                ${record.notes ? `<p style="margin:5px 0;color:#929bb5;font-size:11px">${escapeHTML(record.notes)}</p>` : ""}
+                                <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:9px;color:#929bb5;font-size:10px">
+                                    <span>By ${escapeHTML(record.performed_by_name || "Unknown user")}</span>
+                                    <span>${escapeHTML(when)}</span>
+                                </div>
+                            </article>
+                        `;
+                    }).join("")}
+                </div>
+            `;
+
+        } catch (error) {
+            console.error("BMY Stock history error:", error);
+            historyContainer.textContent =
+                error.message || "Could not load stock adjustment history.";
+        }
+    }
+
     function renderProducts() {
         const query = (search?.value || "").trim().toLowerCase();
 
@@ -201,6 +470,22 @@
 
                     <td>
                         <div style="display:flex;gap:8px;flex-wrap:wrap">
+
+                            <button
+                                type="button"
+                                class="secondary"
+                                data-inventory-action="adjust"
+                                data-product-id="${productId}">
+                                Adjust stock
+                            </button>
+
+                            <button
+                                type="button"
+                                class="secondary"
+                                data-inventory-action="history"
+                                data-product-id="${productId}">
+                                History
+                            </button>
 
                             <button
                                 type="button"
@@ -579,6 +864,16 @@
             showMessage(
                 "Product not found. Refresh the inventory and try again."
             );
+            return;
+        }
+
+        if (action === "adjust") {
+            openStockDialog(product, "adjust");
+            return;
+        }
+
+        if (action === "history") {
+            openStockDialog(product, "history");
             return;
         }
 
