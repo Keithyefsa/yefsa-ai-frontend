@@ -2050,3 +2050,49 @@ footer {
     }
 
 }
+/* =================================
+   SUPPLIER MANAGEMENT
+================================= */
+.supplier-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+.supplier-contact-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 13px;
+  background: #0b1122;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  min-width: 0;
+}
+.supplier-contact-grid small {
+  color: #75809e;
+  font-size: 9px;
+  letter-spacing: .8px;
+}
+.supplier-contact-grid strong {
+  color: #dce4ff;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.supplier-profile-stats { margin-top: 14px; }
+.supplier-actions { white-space: nowrap; }
+.supplier-actions button { margin-right: 7px; }
+#supplierSearch {
+  background: #0b1122;
+  border: 1px solid #2a3552;
+  border-radius: 8px;
+  color: #e8ecf8;
+  padding: 10px 12px;
+  font-size: 11px;
+}
+@media (max-width: 700px) {
+  .supplier-contact-grid { grid-template-columns: 1fr; }
+  #page-suppliers .heading { align-items: flex-start; flex-direction: column; }
+  #page-suppliers .panel-head { align-items: flex-start; flex-direction: column; }
+  #supplierSearch { max-width: 100% !important; width: 100%; }
+}
