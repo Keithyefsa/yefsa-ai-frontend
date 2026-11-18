@@ -583,9 +583,175 @@
 
 <section class="page" id="page-suppliers">
 
-<div class="heading"> <div> <small class="eyebrow">PEOPLE</small> <h1>Suppliers</h1> <p>Organize supplier contacts and purchasing relationships.</p> </div> </div>
+    <div class="heading">
+        <div>
+            <small class="eyebrow">PURCHASING</small>
+            <h1>Suppliers</h1>
+            <p>Manage supplier contacts, purchase history and outstanding balances.</p>
+        </div>
+        <button class="primary" id="supplierAddButton" type="button">+ Add supplier</button>
+    </div>
 
-<article class="panel coming"> <b>⇄</b> <h2>Supplier management is next</h2> <p> Supplier profiles, purchase records and inventory links will be built next. </p> </article>
+    <div class="stats three">
+        <article>
+            <span>Total suppliers</span>
+            <strong id="supplierCount">Loading...</strong>
+            <small>Registered in this business</small>
+        </article>
+        <article>
+            <span>Total purchases</span>
+            <strong id="supplierPurchaseTotal">Loading...</strong>
+            <small>Excludes cancelled purchases</small>
+        </article>
+        <article>
+            <span>Outstanding balance</span>
+            <strong id="supplierOutstandingTotal">Loading...</strong>
+            <small>Amount still owed to suppliers</small>
+        </article>
+    </div>
+
+    <article class="panel" id="supplierFormPanel" hidden>
+        <div class="panel-head">
+            <div>
+                <h2 id="supplierFormTitle">Add supplier</h2>
+                <p>Enter the supplier's contact information.</p>
+            </div>
+        </div>
+        <form id="supplierForm" class="form-grid">
+            <input type="hidden" id="supplierId">
+            <div class="field">
+                <label for="supplierName">Supplier name *</label>
+                <input id="supplierName" type="text" maxlength="150" required placeholder="Business or supplier name">
+            </div>
+            <div class="field">
+                <label for="supplierContactPerson">Contact person</label>
+                <input id="supplierContactPerson" type="text" maxlength="150" placeholder="Contact person's name">
+            </div>
+            <div class="field">
+                <label for="supplierPhone">Phone number</label>
+                <input id="supplierPhone" type="tel" maxlength="50" placeholder="e.g. 07...">
+            </div>
+            <div class="field">
+                <label for="supplierEmail">Email address</label>
+                <input id="supplierEmail" type="email" maxlength="150" placeholder="supplier@example.com">
+            </div>
+            <div class="field wide">
+                <label for="supplierAddress">Address</label>
+                <input id="supplierAddress" type="text" maxlength="255" placeholder="Supplier location or address">
+            </div>
+            <div class="wide" style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="primary" id="supplierSubmitButton" type="submit">Save supplier</button>
+                <button class="secondary" id="supplierCancelButton" type="button">Cancel</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="panel" id="supplierListPanel">
+        <div class="panel-head">
+            <div>
+                <h2>Supplier directory</h2>
+                <p>Search and manage suppliers linked to this business.</p>
+            </div>
+            <input id="supplierSearch" type="search" placeholder="Search suppliers..." aria-label="Search suppliers" style="max-width:230px">
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>SUPPLIER</th>
+                        <th>CONTACT PERSON</th>
+                        <th>PHONE</th>
+                        <th>PURCHASES</th>
+                        <th>OUTSTANDING</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody id="suppliersRows">
+                    <tr><td colspan="6" class="empty">Loading suppliers...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="panel" id="supplierProfilePanel" hidden>
+        <div class="panel-head">
+            <div>
+                <small class="eyebrow">SUPPLIER PROFILE</small>
+                <h2 id="supplierProfileName">Supplier</h2>
+                <p id="supplierProfileContact">Contact person</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="secondary" type="button" data-supplier-edit-profile>Edit supplier</button>
+                <button class="secondary" type="button" data-supplier-close-profile>Close</button>
+            </div>
+        </div>
+        <div class="supplier-contact-grid">
+            <div><small>PHONE</small><strong id="supplierProfilePhone">—</strong></div>
+            <div><small>EMAIL</small><strong id="supplierProfileEmail">—</strong></div>
+            <div><small>ADDRESS</small><strong id="supplierProfileAddress">—</strong></div>
+        </div>
+        <div class="stats three supplier-profile-stats">
+            <article><span>Total purchases</span><strong id="supplierProfilePurchased">UGX 0</strong></article>
+            <article><span>Amount paid</span><strong id="supplierProfilePaid">UGX 0</strong></article>
+            <article><span>Outstanding</span><strong id="supplierProfileOutstanding">UGX 0</strong></article>
+        </div>
+        <hr>
+        <div class="panel-head">
+            <div><h2>Purchase history</h2><p>Purchases recorded against this supplier.</p></div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>PURCHASE</th>
+                        <th>DATE</th>
+                        <th>TOTAL</th>
+                        <th>PAID</th>
+                        <th>BALANCE</th>
+                        <th>PAYMENT STATUS</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="supplierPurchaseRows">
+                    <tr><td colspan="7" class="empty">No purchase history.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="panel" id="supplierPaymentPanel" hidden>
+        <div class="panel-head">
+            <div><h2>Record supplier payment</h2><p>Payments are saved in the supplier payment ledger.</p></div>
+        </div>
+        <form id="supplierPaymentForm" class="form-grid">
+            <input type="hidden" id="supplierPaymentPurchaseId">
+            <div class="field">
+                <label for="supplierPaymentAmount">Payment amount (UGX) *</label>
+                <input id="supplierPaymentAmount" type="number" min="0.01" step="0.01" required>
+            </div>
+            <div class="field">
+                <label for="supplierPaymentMethod">Payment method *</label>
+                <select id="supplierPaymentMethod" required>
+                    <option value="Cash">Cash</option>
+                    <option value="Mobile Money">Mobile Money</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="supplierPaymentReference">Reference number</label>
+                <input id="supplierPaymentReference" type="text" maxlength="100" placeholder="Transaction or receipt reference">
+            </div>
+            <div class="field">
+                <label for="supplierPaymentNotes">Notes</label>
+                <input id="supplierPaymentNotes" type="text" placeholder="Optional payment notes">
+            </div>
+            <div class="wide" style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="primary" id="supplierPaymentSubmitButton" type="submit">Save payment</button>
+                <button class="secondary" id="supplierPaymentCancelButton" type="button">Cancel</button>
+            </div>
+        </form>
+    </article>
 
 </section>
 
