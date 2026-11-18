@@ -447,9 +447,135 @@
 
 <section class="page" id="page-inventory">
 
-<div class="heading"> <div> <small class="eyebrow">WORKSPACE</small> <h1>Inventory</h1> <p>Product and stock control.</p> </div> </div>
+    <div class="heading">
+        <div>
+            <small class="eyebrow">WORKSPACE</small>
+            <h1>Inventory</h1>
+            <p>Manage products, stock quantities and reorder levels.</p>
+        </div>
+        <button class="secondary" id="inventoryRefresh" type="button">
+            ↻ Refresh
+        </button>
+    </div>
 
-<article class="panel coming"> <b>▤</b> <h2>Inventory management is next</h2> <p> We'll add products, stock movements, reorder levels and supplier links in the next build stage. </p> </article>
+    <div class="stats three">
+        <article>
+            <span>Total products</span>
+            <strong id="inventoryProductCount">0</strong>
+            <small>Registered products</small>
+        </article>
+
+        <article>
+            <span>Low stock</span>
+            <strong id="inventoryLowStockCount">0</strong>
+            <small>Products requiring attention</small>
+        </article>
+
+        <article>
+            <span>Stock monitoring</span>
+            <strong>Active</strong>
+            <small id="inventoryLowStockSummary">Loading stock status...</small>
+        </article>
+    </div>
+
+    <article class="panel">
+        <div class="panel-head">
+            <div>
+                <h2>Register a product</h2>
+                <p>Add a product to your business catalogue.</p>
+            </div>
+        </div>
+
+        <form id="inventoryProductForm" class="form-grid">
+
+            <div class="field">
+                <label for="inventoryProductName">Product name *</label>
+                <input id="inventoryProductName" required maxlength="150"
+                    placeholder="e.g. Samsung Galaxy A16">
+            </div>
+
+            <div class="field">
+                <label for="inventorySku">SKU / Product code</label>
+                <input id="inventorySku" maxlength="100"
+                    placeholder="e.g. SAM-A16-001">
+            </div>
+
+            <div class="field">
+                <label for="inventoryPurchasePrice">Purchase price (UGX)</label>
+                <input id="inventoryPurchasePrice" type="number"
+                    min="0" step="0.01" placeholder="0">
+            </div>
+
+            <div class="field">
+                <label for="inventorySellingPrice">Selling price (UGX) *</label>
+                <input id="inventorySellingPrice" type="number"
+                    min="0" step="0.01" required placeholder="0">
+            </div>
+
+            <div class="field">
+                <label for="inventoryQuantity">Opening stock quantity</label>
+                <input id="inventoryQuantity" type="number"
+                    min="0" step="1" value="0" required>
+            </div>
+
+            <div class="field">
+                <label for="inventoryReorderLevel">Reorder level</label>
+                <input id="inventoryReorderLevel" type="number"
+                    min="0" step="1" value="0" required>
+            </div>
+
+            <div class="field wide">
+                <label for="inventoryDescription">Description</label>
+                <input id="inventoryDescription" maxlength="500"
+                    placeholder="Optional product description">
+            </div>
+
+            <button class="primary wide" type="submit">
+                + Register product
+            </button>
+
+        </form>
+    </article>
+
+    <article class="panel">
+
+        <div class="panel-head">
+            <div>
+                <h2>Product catalogue</h2>
+                <p>Products belonging to the selected business.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="inventorySearch">Search products</label>
+            <input id="inventorySearch"
+                placeholder="Search by product name or SKU">
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>PRODUCT</th>
+                        <th>SKU</th>
+                        <th>SELLING PRICE</th>
+                        <th>QUANTITY</th>
+                        <th>REORDER LEVEL / STATUS</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+
+                <tbody id="inventoryProducts">
+                    <tr>
+                        <td colspan="6" class="empty">
+                            Select a business to view products.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </article>
 
 </section>
 
@@ -678,6 +804,6 @@ I will use the business records available to your account and distinguish record
 <!-- ===================================== 7. APPLICATION JAVASCRIPT ====================================== -->
 
 <script src="scriptbmy.js"></script>
-
+<script src="inventory.js"></script>
 </body> </html> </CodeBlock>
 
