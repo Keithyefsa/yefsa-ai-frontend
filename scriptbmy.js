@@ -242,8 +242,510 @@ if ($("customerForm")) {
         }
     });
 }
+/* ==========================================
+   BMY SUPPLIER MANAGEMENT
+========================================== */
 
+let bmySuppliers = [];
+let bmySupplierPurchases = [];
+let bmySelectedSupplierId = null;
+let bmySupplierPurchaseForPayment = null;
 
+function bmySupplierMoney(amount) {
+    const business = bmyGetSelectedBusiness();
+    const currency = business?.currency || data.settings.currency || "UGX";
+    return `${currency} ${Number(amount || 0).toLocaleString()}`;
+}
+
+function bmySupplierDate(value) {
+    if (!value) return "—";
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime())
+        ? "—"
+        : parsed.toLocaleDateString(undefined, {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        });
+}
+
+function bmyGetSupplierPurchases(supplierId) {
+    return bmySupplierPurchases.filter(purchase =>
+        Number(purchase.supplier_id) === Number(supplierId)
+    );
+}
+
+function bmyGetSupplierTotals(supplierId) {
+    const purchases = bmyGetSupplierPurchases(supplierId)
+        .filter(purchase => purchase.purchase_status !== "cancelled");
+
+    return purchases.reduce((totals, purchase) => {
+        const total = Number(purchase.total_amount || 0);
+        const paid = Number(purchase.amount_paid || 0);
+        totals.purchased += total;
+        totals.paid += paid;
+        totals.outstanding += Math.max(0, total - paid);
+        return totals;
+    }, { purchased: 0, paid: 0, outstanding: 0 });
+}
+
+function bmyRenderSuppliers() {
+    const rows = $("suppliersRows");
+    const search = ($("supplierSearch")?.value || "").trim().toLowerCase();
+    const visible = bmySuppliers.filter(supplier => {
+        const haystack = [
+            supplier.supplier_name,
+            supplier.contact_person,
+            supplier.phone,
+            supplier.email
+        ].join(" ").toLowerCase();
+        return haystack.includes(search);
+    });
+
+    setText("supplierCount", bmySuppliers.length.toLocaleString());
+
+    const allTotals = bmySuppliers.reduce((totals, supplier) => {
+        const supplierTotals = bmyGetSupplierTotals(supplier.supplier_id);
+        totals.purchased += supplierTotals.purchased;
+        totals.outstanding += supplierTotals.outstanding;
+        return totals;
+    }, { purchased: 0, outstanding: 0 });
+
+    setText("supplierPurchaseTotal", bmySupplierMoney(allTotals.purchased));
+    setText("supplierOutstandingTotal", bmySupplierMoney(allTotals.outstanding));
+
+    if (!rows) return;
+
+    if (!bmySuppliers.length) {
+        rows.innerHTML = '<tr><td colspan="6" class="empty">No suppliers yet. Add your first supplier to get started.</td></tr>';
+        return;
+    }
+
+    if (!visible.length) {
+        rows.innerHTML = '<tr><td colspan="6" class="empty">No suppliers match your search.</td></tr>';
+        return;
+    }
+
+    rows.innerHTML = visible.map(supplier => {
+        const totals = bmyGetSupplierTotals(supplier.supplier_id);
+        const purchaseCount = bmyGetSupplierPurchases(supplier.supplier_id).length;
+        return `
+            <tr>
+                <td><strong>${safe(supplier.supplier_name)}</strong></td>
+                <td>${safe(supplier.contact_person || "—")}</td>
+                <td>${safe(supplier.phone || "—")}</td>
+                <td>${purchaseCount}</td>
+                <td>${safe(bmySupplierMoney(totals.outstanding))}</td>
+                <td class="supplier-actions">
+                    <button class="link" type="button" data-supplier-action="view" data-id="${supplier.supplier_id}">View</button>
+                    <button class="link" type="button" data-supplier-action="edit" data-id="${supplier.supplier_id}">Edit</button>
+                    <button class="delete" type="button" data-supplier-action="delete" data-id="${supplier.supplier_id}">Delete</button>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+function bmyShowSupplierForm(supplier = null) {
+    const panel = $("supplierFormPanel");
+    const form = $("supplierForm");
+    if (!panel || !form) return;
+
+    form.reset();
+    $("supplierId").value = supplier ? supplier.supplier_id : "";
+    $("supplierName").value = supplier?.supplier_name || "";
+    $("supplierContactPerson").value = supplier?.contact_person || "";
+    $("supplierPhone").value = supplier?.phone || "";
+    $("supplierEmail").value = supplier?.email || "";
+    $("supplierAddress").value = supplier?.address || "";
+    setText("supplierFormTitle", supplier ? "Edit supplier" : "Add supplier");
+    setText("supplierSubmitButton", supplier ? "Save changes" : "Save supplier");
+    panel.hidden = false;
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function bmyHideSupplierForm() {
+    const panel = $("supplierFormPanel");
+    if (panel) panel.hidden = true;
+    $("supplierForm")?.reset();
+}
+
+function bmyShowSupplierProfile(supplierId) {
+    const supplier = bmySuppliers.find(item =>
+        Number(item.supplier_id) === Number(supplierId)
+    );
+    const panel = $("supplierProfilePanel");
+    if (!supplier || !panel) return;
+
+    bmySelectedSupplierId = Number(supplierId);
+    const purchases = bmyGetSupplierPurchases(supplierId)
+        .sort((a, b) => new Date(b.purchase_date || 0) - new Date(a.purchase_date || 0));
+    const totals = bmyGetSupplierTotals(supplierId);
+
+    setText("supplierProfileName", supplier.supplier_name);
+    setText("supplierProfileContact", supplier.contact_person || "No contact person provided");
+    setText("supplierProfilePhone", supplier.phone || "No phone provided");
+    setText("supplierProfileEmail", supplier.email || "No email provided");
+    setText("supplierProfileAddress", supplier.address || "No address provided");
+    setText("supplierProfilePurchased", bmySupplierMoney(totals.purchased));
+    setText("supplierProfilePaid", bmySupplierMoney(totals.paid));
+    setText("supplierProfileOutstanding", bmySupplierMoney(totals.outstanding));
+
+    const rows = $("supplierPurchaseRows");
+    if (rows) {
+        if (!purchases.length) {
+            rows.innerHTML = '<tr><td colspan="7" class="empty">No purchase records are linked to this supplier yet.</td></tr>';
+        } else {
+            rows.innerHTML = purchases.map(purchase => {
+                const total = Number(purchase.total_amount || 0);
+                const paid = Number(purchase.amount_paid || 0);
+                const balance = purchase.purchase_status === "cancelled"
+                    ? 0
+                    : Math.max(0, total - paid);
+                const canPay = purchase.purchase_status !== "cancelled" && balance > 0;
+                return `
+                    <tr>
+                        <td>#${purchase.purchase_id}</td>
+                        <td>${safe(bmySupplierDate(purchase.purchase_date))}</td>
+                        <td>${safe(bmySupplierMoney(total))}</td>
+                        <td>${safe(bmySupplierMoney(paid))}</td>
+                        <td>${safe(bmySupplierMoney(balance))}</td>
+                        <td>${safe(purchase.payment_status || "—")}</td>
+                        <td>${canPay
+                            ? `<button class="link" type="button" data-supplier-record-payment="${purchase.purchase_id}">Record payment</button>`
+                            : safe(purchase.purchase_status || "—")}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+    }
+
+    panel.hidden = false;
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
+       }
+async function bmyLoadSuppliers() {
+    const business = bmyGetSelectedBusiness();
+    const rows = $("suppliersRows");
+
+    if (!business?.business_id) {
+        bmySuppliers = [];
+        bmySupplierPurchases = [];
+        bmyRenderSuppliers();
+        if (rows) rows.innerHTML = '<tr><td colspan="6" class="empty">Select a business to load suppliers.</td></tr>';
+        return;
+    }
+
+    bmySuppliers = [];
+    bmySupplierPurchases = [];
+    bmySelectedSupplierId = null;
+
+    if ($("supplierProfilePanel")) {
+        $("supplierProfilePanel").hidden = true;
+    }
+
+    if (rows) {
+        rows.innerHTML = '<tr><td colspan="6" class="empty">Loading suppliers...</td></tr>';
+    }
+
+    setText("supplierCount", "Loading...");
+    setText("supplierPurchaseTotal", "Loading...");
+    setText("supplierOutstandingTotal", "Loading...");
+
+    const base = `/bmy/business/${business.business_id}`;
+
+    const [supplierResult, purchaseResult] = await Promise.allSettled([
+        bmyRequest(`${base}/suppliers`),
+        bmyRequest(`${base}/purchases`)
+    ]);
+
+    if (supplierResult.status === "rejected") {
+        console.error("BMY supplier loading error:", supplierResult.reason);
+
+        if (rows) {
+            rows.innerHTML = `<tr><td colspan="6" class="empty">${safe(supplierResult.reason.message || "Suppliers could not be loaded.")}</td></tr>`;
+        }
+
+        setText("supplierCount", "Unavailable");
+        setText("supplierPurchaseTotal", "Unavailable");
+        setText("supplierOutstandingTotal", "Unavailable");
+
+        toast("Could not load suppliers from the server.");
+        return;
+    }
+
+    bmySuppliers = Array.isArray(supplierResult.value.suppliers)
+        ? supplierResult.value.suppliers
+        : [];
+
+    if (purchaseResult.status === "fulfilled") {
+        bmySupplierPurchases = Array.isArray(purchaseResult.value.purchases)
+            ? purchaseResult.value.purchases
+            : [];
+    } else {
+        console.error("BMY supplier purchase history loading error:", purchaseResult.reason);
+        bmySupplierPurchases = [];
+        toast("Suppliers loaded, but purchase balances could not be retrieved.");
+    }
+
+    bmyRenderSuppliers();
+}
+
+if ($("supplierAddButton")) {
+    $("supplierAddButton").addEventListener("click", () => {
+        bmyShowSupplierForm();
+    });
+}
+
+if ($("supplierCancelButton")) {
+    $("supplierCancelButton").addEventListener("click", bmyHideSupplierForm);
+}
+
+if ($("supplierSearch")) {
+    $("supplierSearch").addEventListener("input", bmyRenderSuppliers);
+}
+
+if ($("supplierForm")) {
+    $("supplierForm").addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const business = bmyGetSelectedBusiness();
+
+        if (!business?.business_id) {
+            toast("Select a business before saving a supplier.");
+            return;
+        }
+
+        const supplierId = $("supplierId").value;
+
+        const payload = {
+            supplier_name: $("supplierName").value.trim(),
+            contact_person: $("supplierContactPerson").value.trim() || null,
+            phone: $("supplierPhone").value.trim() || null,
+            email: $("supplierEmail").value.trim() || null,
+            address: $("supplierAddress").value.trim() || null
+        };
+
+        if (!payload.supplier_name) {
+            toast("Supplier name is required.");
+            return;
+        }
+
+        const button = $("supplierSubmitButton");
+        if (button) button.disabled = true;
+
+        try {
+            const path = `/bmy/business/${business.business_id}/suppliers` +
+                (supplierId ? `/${encodeURIComponent(supplierId)}` : "");
+
+            const result = await bmyRequest(path, {
+                method: supplierId ? "PUT" : "POST",
+                body: JSON.stringify(payload)
+            });
+
+            bmyHideSupplierForm();
+            await bmyLoadSuppliers();
+
+            if (supplierId) {
+                bmyShowSupplierProfile(supplierId);
+            }
+
+            toast(result.message || (supplierId
+                ? "Supplier updated."
+                : "Supplier created."));
+
+        } catch (error) {
+            console.error("BMY supplier save error:", error);
+            toast(error.message || "Supplier could not be saved.");
+
+        } finally {
+            if (button) button.disabled = false;
+        }
+    });
+}
+/* ==========================================
+   SUPPLIER ACTIONS
+========================================== */
+
+async function bmyEditSupplier(supplierId) {
+    const supplier = bmySuppliers.find(item =>
+        Number(item.supplier_id) === Number(supplierId)
+    );
+
+    if (!supplier) {
+        toast("Supplier not found.");
+        return;
+    }
+
+    bmyShowSupplierForm(supplier);
+}
+
+async function bmyDeleteSupplier(supplierId) {
+    const supplier = bmySuppliers.find(item =>
+        Number(item.supplier_id) === Number(supplierId)
+    );
+
+    if (!supplier) {
+        toast("Supplier not found.");
+        return;
+    }
+
+    const confirmed = confirm(
+        `Delete ${supplier.supplier_name}?\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    const business = bmyGetSelectedBusiness();
+
+    try {
+        const result = await bmyRequest(
+            `/bmy/business/${business.business_id}/suppliers/${supplierId}`,
+            { method: "DELETE" }
+        );
+
+        await bmyLoadSuppliers();
+        toast(result.message || "Supplier deleted successfully.");
+
+    } catch (error) {
+        console.error("Supplier deletion error:", error);
+        toast(error.message || "Could not delete supplier.");
+    }
+}
+
+/* ==========================================
+   SUPPLIER PAYMENT
+========================================== */
+
+async function bmyRecordSupplierPayment(purchaseId) {
+    const purchase = bmySupplierPurchases.find(item =>
+        Number(item.purchase_id) === Number(purchaseId)
+    );
+
+    if (!purchase) {
+        toast("Purchase record not found.");
+        return;
+    }
+
+    const total = Number(purchase.total_amount || 0);
+    const paid = Number(purchase.amount_paid || 0);
+    const outstanding = total - paid;
+
+    if (outstanding <= 0) {
+        toast("This purchase has already been fully paid.");
+        return;
+    }
+
+    const amountInput = prompt(
+        `Outstanding balance: ${bmySupplierMoney(outstanding)}\n\nEnter payment amount:`
+    );
+
+    if (amountInput === null) return;
+
+    const amount = Number(amountInput);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+        toast("Enter a valid payment amount.");
+        return;
+    }
+
+    if (amount > outstanding) {
+        toast("Payment cannot exceed the outstanding balance.");
+        return;
+    }
+
+    const paymentMethod = prompt(
+        "Enter payment method (Cash, Mobile Money, Bank, etc.):"
+    );
+
+    if (paymentMethod === null) return;
+
+    if (!paymentMethod.trim()) {
+        toast("Payment method is required.");
+        return;
+    }
+
+    const referenceNumber = prompt(
+        "Enter payment reference number (optional):"
+    );
+
+    if (referenceNumber === null) return;
+
+    const notes = prompt("Payment notes (optional):");
+
+    if (notes === null) return;
+
+    const business = bmyGetSelectedBusiness();
+
+    try {
+        const result = await bmyRequest(
+            `/bmy/business/${business.business_id}/purchases/${purchaseId}/payments`,
+            {
+                method: "POST",
+                body: JSON.stringify({
+                    amount: amount,
+                    payment_method: paymentMethod.trim(),
+                    reference_number: referenceNumber.trim() || null,
+                    notes: notes.trim() || null
+                })
+            }
+        );
+
+        await bmyLoadSuppliers();
+        bmyShowSupplierProfile(bmySelectedSupplierId);
+
+        toast(result.message || "Supplier payment recorded.");
+
+    } catch (error) {
+        console.error("Supplier payment error:", error);
+        toast(error.message || "Could not record supplier payment.");
+    }
+}
+
+/* ==========================================
+   SUPPLIER TABLE ACTION LISTENERS
+========================================== */
+
+if ($("suppliersRows")) {
+    $("suppliersRows").addEventListener("click", event => {
+        const button = event.target.closest("button");
+
+        if (!button) return;
+
+        const supplierId = button.dataset.id;
+        const action = button.dataset.supplierAction;
+        const purchaseId = button.dataset.supplierRecordPayment;
+
+        if (purchaseId) {
+            bmyRecordSupplierPayment(purchaseId);
+            return;
+        }
+
+        if (!supplierId) return;
+
+        if (action === "view") {
+            bmyShowSupplierProfile(supplierId);
+        }
+
+        if (action === "edit") {
+            bmyEditSupplier(supplierId);
+        }
+
+        if (action === "delete") {
+            bmyDeleteSupplier(supplierId);
+        }
+    });
+}
+
+if ($("supplierProfileClose")) {
+    $("supplierProfileClose").addEventListener("click", () => {
+        $("supplierProfilePanel").hidden = true;
+        bmySelectedSupplierId = null;
+    });
+}
+
+/* ==========================================
+   END SUPPLIER MANAGEMENT
+========================================== */
 /* ==========================================
    5. EMPLOYEE MANAGEMENT
 ========================================== */
