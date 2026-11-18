@@ -423,20 +423,7 @@ function bmyShowSupplierProfile(supplierId) {
     panel.hidden = false;
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
        }
-async function bmyLoadSuppliers() {try {
-    bmyRenderSuppliers();
-} catch (error) {
-    console.error("BMY SUPPLIER RENDER ERROR:", error);
-
-    setText(
-        "suppliersRows",
-        "Supplier display error: " + error.message
-    );
-
-    setText("supplierCount", "Error");
-    setText("supplierPurchaseTotal", "Error");
-    setText("supplierOutstandingTotal", "Error");
-}
+async function bmyLoadSuppliers() {
     const business = bmyGetSelectedBusiness();
     const rows = $("suppliersRows");
 
