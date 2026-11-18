@@ -253,7 +253,7 @@ let bmySupplierPurchaseForPayment = null;
 
 function bmySupplierMoney(amount) {
     const business = bmyGetSelectedBusiness();
-    const currency = business?.currency || data.settings.currency || "UGX";
+    const currency = business?.currency || data?.settings?.currency || "UGX";
     return `${currency} ${Number(amount || 0).toLocaleString()}`;
 }
 
