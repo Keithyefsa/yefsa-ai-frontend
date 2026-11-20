@@ -18,7 +18,6 @@
 <div class="field"> <label for="loginPassword">Password</label> <input id="loginPassword" type="password" placeholder="Enter your password" autocomplete="current-password" required > </div>
 
 <p id="authError" class="auth-error" role="alert" hidden></p>
-
 <button id="loginButton" class="primary auth-submit" type="submit"> Sign in </button>
 
 </form>
@@ -60,7 +59,6 @@
 <button id="businessLogout" class="secondary auth-submit" type="button"> Sign out </button>
 
 </div> </div>
-
 <!-- ===================================== 3. SUPER ADMIN SCREEN ====================================== -->
 
 <div id="superAdminScreen" class="super-admin-screen" hidden>
@@ -102,7 +100,6 @@
 </section>
 
 <section class="super-admin-business-section">
-
 <div class="super-admin-section-heading"> <div> <small class="eyebrow">BUSINESS MANAGEMENT</small> <h2>Register a new business</h2> <p>Create a business account and assign its first owner.</p> </div> </div>
 
 <div class="super-admin-business-panel">
@@ -144,7 +141,6 @@
 <section id="superAdminResult" class="super-admin-result" aria-live="polite" hidden>
 
 <div class="super-admin-result-heading"> <span>✓</span> <div> <h2>Business registration result</h2> <p>Business creation information</p> </div> </div>
-
 <div id="superAdminResultDetails" class="super-admin-result-details"></div>
 
 </section>
@@ -186,7 +182,6 @@
 <div class="user"> <b>A</b> <span> <strong>Administrator</strong> <small>Workspace owner</small> </span> </div>
 
 </div>
-
 </aside>
 
 <!-- ===================================== 5. BUSINESS WORKSPACE ====================================== -->
@@ -228,7 +223,6 @@
 <article> <span>Customers</span> <strong id="customerCount">Loading...</strong> <small>Saved customer records</small> </article>
 
 <article> <span>Products</span> <strong id="productCount">Loading...</strong> <small id="lowStockCount">Loading stock status...</small> </article>
-
 </div>
 
 <div class="columns">
@@ -270,7 +264,6 @@
 <section class="page" id="page-customers">
 
 <div class="heading"> <div> <small class="eyebrow">WORKSPACE</small> <h1>Customers</h1> <p>Keep customer contact details and account records in one place.</p> </div> </div>
-
 <article class="panel">
 
 <form id="customerForm" class="form-row">
@@ -312,7 +305,6 @@
 <div class="field"> <label for="saleDescription">Description</label> <input id="saleDescription" required placeholder="Product or service sold"> </div>
 
 <div class="field"> <label for="saleCustomer">Customer</label> <input id="saleCustomer" placeholder="Customer (optional)"> </div>
-
 <div class="field"> <label for="saleAmount">Amount (UGX)</label> <input id="saleAmount" type="number" min="1" required> </div>
 
 <div class="field"> <label for="saleMethod">Payment method</label> <select id="saleMethod"> <option>Cash</option> <option>Mobile Money</option> <option>Bank transfer</option> <option>Card</option> <option>Credit</option> </select> </div>
@@ -354,7 +346,6 @@
 <article class="panel">
 
 <h2>Record an expense</h2>
-
 <form id="expenseForm" class="form-grid">
 
 <div class="field"> <label for="expenseDescription">Description</label> <input id="expenseDescription" required placeholder="e.g. Transport"> </div>
@@ -389,25 +380,68 @@
 
 <article class="panel">
 
-<form id="employeeForm" class="form-row">
-
-<div class="field"> <label for="employeeName">Employee name</label> <input id="employeeName" required> </div>
-
-<div class="field"> <label for="employeeRole">Position / role</label> <input id="employeeRole" required> </div>
-
-<div class="field"> <label for="employeePhone">Phone</label> <input id="employeePhone" placeholder="+256..."> </div>
-
-<button class="primary" type="submit">＋ Add employee</button>
-
+<form id="employeeForm" class="form-grid">
+    <div class="field">
+        <label for="employeeName">Employee full name *</label>
+        <input id="employeeName" required maxlength="150" placeholder="Full name">
+    </div>
+    <div class="field">
+        <label for="employeeEmail">Login email *</label>
+        <input id="employeeEmail" type="email" required maxlength="150" placeholder="employee@example.com">
+    </div>
+    <div class="field">
+        <label for="employeePhone">Phone</label>
+        <input id="employeePhone" placeholder="+256...">
+    </div>
+    <div class="field">
+        <label for="employeeRole">Job title *</label>
+        <input id="employeeRole" required maxlength="100" placeholder="e.g. Salesperson">
+    </div>
+    <div class="field">
+        <label for="employeeAccessRole">BMY access role *</label>
+        <select id="employeeAccessRole" required>
+            <option value="staff">Staff</option>
+            <option value="manager">Manager</option>
+            <option value="admin">Admin (owner only)</option>
+        </select>
+    </div>
+    <div class="field">
+        <label for="employeeSalary">Monthly salary (UGX)</label>
+        <input id="employeeSalary" type="number" min="0" step="0.01" value="0">
+    </div>
+    <div class="field wide">
+        <label for="employeeTemporaryPassword">Temporary password *</label>
+        <input id="employeeTemporaryPassword" type="password" minlength="8" maxlength="128" required autocomplete="new-password" placeholder="At least 8 characters">
+        <small>Give this password to the employee securely. They must change it at first login.</small>
+    </div>
+    <button class="primary" type="submit" id="employeeSubmitButton">＋ Create employee account</button>
 </form>
 
 <hr>
 
-<div class="panel-head"> <h2>Employee directory</h2> <small id="employeeTotal">0 records</small> </div>
+<div class="panel-head">
+    <h2>Employee directory</h2>
+    <small id="employeeTotal">0 records</small>
+</div>
 
-<div class="table-wrap"> <table> <thead> <tr> <th>EMPLOYEE</th> <th>POSITION</th> <th>PHONE</th> <th>ADDED</th> <th></th> </tr> </thead>
-
-<tbody id="employees"> <tr> <td colspan="5" class="empty">No employees saved yet.</td> </tr> </tbody> </table> </div>
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>EMPLOYEE</th>
+                <th>JOB TITLE</th>
+                <th>PHONE</th>
+                <th>LOGIN EMAIL</th>
+                <th>ACCESS ROLE</th>
+                <th>STATUS</th>
+                <th>ACTION</th>
+            </tr>
+        </thead>
+        <tbody id="employees">
+            <tr><td colspan="7" class="empty">Loading employees…</td></tr>
+        </tbody>
+    </table>
+</div>
 
 </article>
 
@@ -416,7 +450,6 @@
 <!-- RECEIPTS -->
 
 <section class="page" id="page-receipts">
-
 <div class="heading"> <div> <small class="eyebrow">TOOLS</small> <h1>Receipting</h1> <p>Create a printable payment receipt.</p> </div> </div>
 
 <article class="panel">
@@ -752,7 +785,6 @@
             </div>
         </form>
     </article>
-
 </section>
 
 <!-- REPORTS -->
@@ -794,7 +826,6 @@
 <div class="ai-welcome-icon">✳</div>
 
 <div class="ai-welcome-content"> <small class="eyebrow">YOUR BUSINESS ASSISTANT</small> <h2>Intelligence that understands your business.</h2> <p> Ask about sales, profit, stock, customers, expenses, suppliers, payroll and business performance. </p>
-
 <div class="ai-context-meta"> <span class="ai-status-dot"></span> <span id="aiBusinessStatus">Ready to connect to your business</span> <span class="ai-context-divider">·</span> <span id="aiBusinessName">Selected business</span> </div> </div>
 
 </article>
@@ -836,7 +867,6 @@
 <div class="ai-chat-heading">
 
 <div class="ai-chat-avatar">✳</div>
-
 <div> <h2>Yefsa AI Assistant</h2> <p>Business-aware AI assistant</p> </div>
 
 </div>
@@ -878,7 +908,6 @@ I will use the business records available to your account and distinguish record
 <form id="aiChatForm" class="ai-chat-composer">
 
 <div class="ai-composer-input">
-
 <textarea id="aiChatInput" rows="2" maxlength="4000" placeholder="Ask Yefsa AI about your business..." aria-label="Your message" required ></textarea>
 
 <div class="ai-composer-footer">
@@ -920,7 +949,6 @@ I will use the business records available to your account and distinguish record
 <div class="ai-review-footnote"> <span>✦</span> <small> Recommendations are based on recorded data. Missing or uncertain information will be identified. </small> </div>
 
 </aside>
-
 </div>
 
 <div class="ai-disclaimer"> <span>ⓘ</span> <p> Yefsa AI provides business insights, not guaranteed financial results. Always verify important decisions against your original business records. </p> </div>
@@ -962,7 +990,6 @@ I will use the business records available to your account and distinguish record
 <footer> © <span id="year"></span> YEFSATECH <span>Business Management by Yefsa · BMY</span> </footer>
 
 </main>
-
 <!-- ===================================== 6. GLOBAL NOTIFICATIONS ====================================== -->
 
 <div id="toast" class="toast" role="status" aria-live="polite" ></div>
@@ -972,4 +999,3 @@ I will use the business records available to your account and distinguish record
 <script src="scriptbmy.js"></script>
 <script src="inventory.js"></script>
 </body> </html> </CodeBlock>
-
