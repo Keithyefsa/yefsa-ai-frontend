@@ -750,23 +750,151 @@ if ($("supplierProfileClose")) {
    5. EMPLOYEE MANAGEMENT
 ========================================== */
 
+async function bmyLoadEmployees() {
+    const business = bmyGetSelectedBusiness();
+
+    if (!business || !business.business_id) {
+        data.employees = [];
+        bmyRenderEmployees();
+        return;
+    }
+
+    const tbody = $("employees");
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">Loading employees…</td></tr>';
+    }
+
+    try {
+        const result = await bmyRequest(
+            `/bmy/business/${business.business_id}/employees`
+        );
+
+        data.employees = (Array.isArray(result.employees) ? result.employees : []).map(employee => ({
+            id: employee.employee_id,
+            name: employee.full_name,
+            role: employee.job_title || "—",
+            phone: employee.phone || "",
+            email: employee.login_email || employee.email || "",
+            accessRole: employee.login_role || "—",
+            status: employee.employment_status || "active",
+            membershipStatus: employee.membership_status || "—",
+            hasLogin: Boolean(employee.has_login),
+            date: employee.date_joined || employee.created_at || ""
+        }));
+
+        bmyRenderEmployees();
+    } catch (error) {
+        console.error("BMY employee loading error:", error);
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="7" class="empty">${safe(error.message || "Could not load employees.")}</td></tr>`;
+        }
+        setText("employeeTotal", "Unavailable");
+    }
+}
+
+function bmyRenderEmployees() {
+    const rows = $("employees");
+    if (!rows) return;
+
+    setText("employeeTotal", data.employees.length + " records");
+
+    rows.innerHTML = data.employees.length
+        ? data.employees.map(employee => `
+            <tr>
+                <td>${safe(employee.name)}</td>
+                <td>${safe(employee.role)}</td>
+                <td>${safe(employee.phone || "—")}</td>
+                <td>${safe(employee.email || "No login")}</td>
+                <td>${safe(employee.accessRole)}</td>
+                <td>${safe(employee.status === "active" ? "Active" : "Inactive")}</td>
+                <td>
+                    ${employee.hasLogin
+                        ? `<button type="button" class="secondary" data-employee-toggle="${safe(employee.id)}" data-next-status="${employee.status === "active" ? "inactive" : "active"}">${employee.status === "active" ? "Deactivate" : "Reactivate"}</button>`
+                        : "—"}
+                </td>
+            </tr>
+        `).join("")
+        : '<tr><td colspan="7" class="empty">No employees registered yet.</td></tr>';
+}
+
 if ($("employeeForm")) {
-    $("employeeForm").addEventListener("submit", event => {
+    $("employeeForm").addEventListener("submit", async event => {
         event.preventDefault();
 
-        data.employees.unshift({
-            id: makeId(),
-            name: $("employeeName").value.trim(),
-            role: $("employeeRole").value.trim(),
-            phone: $("employeePhone").value.trim(),
-            date: date()
-        });
+        const business = bmyGetSelectedBusiness();
+        if (!business || !business.business_id) {
+            toast("Select a business first.");
+            return;
+        }
 
-        event.target.reset();
+        const button = $("employeeSubmitButton");
+        if (button) button.disabled = true;
 
-        persist();
+        const payload = {
+            full_name: $("employeeName").value.trim(),
+            email: $("employeeEmail").value.trim(),
+            phone: $("employeePhone").value.trim() || null,
+            job_title: $("employeeRole").value.trim(),
+            access_role: $("employeeAccessRole").value,
+            salary: Number($("employeeSalary").value || 0),
+            temporary_password: $("employeeTemporaryPassword").value
+        };
 
-        toast("Employee added.");
+        try {
+            const result = await bmyRequest(
+                `/bmy/business/${business.business_id}/employees`,
+                {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            event.target.reset();
+            await bmyLoadEmployees();
+
+            const loginEmail = result.login && result.login.email
+                ? result.login.email
+                : payload.email;
+
+            toast("Employee account created. Login email: " + loginEmail);
+        } catch (error) {
+            console.error("BMY employee creation error:", error);
+            toast(error.message || "Employee account could not be created.");
+        } finally {
+            if (button) button.disabled = false;
+        }
+    });
+}
+
+if ($("employees")) {
+    $("employees").addEventListener("click", async event => {
+        const button = event.target.closest("[data-employee-toggle]");
+        if (!button) return;
+
+        const business = bmyGetSelectedBusiness();
+        if (!business || !business.business_id) return;
+
+        const employeeId = button.dataset.employeeToggle;
+        const nextStatus = button.dataset.nextStatus;
+        const action = nextStatus === "active" ? "activate" : "deactivate";
+
+        if (!window.confirm(`Are you sure you want to ${action} this employee?`)) {
+            return;
+        }
+
+        button.disabled = true;
+        try {
+            await bmyRequest(
+                `/bmy/business/${business.business_id}/employees/${employeeId}/${action}`,
+                { method: "POST" }
+            );
+            await bmyLoadEmployees();
+            toast(`Employee ${action}d successfully.`);
+        } catch (error) {
+            console.error("BMY employee status update error:", error);
+            toast(error.message || "Employee status could not be updated.");
+            button.disabled = false;
+        }
     });
 }
 
@@ -2891,6 +3019,7 @@ function bmyOpenWorkspace(business) {
     // Load business-owned records only after the selected business is verified.
     bmyLoadDashboard();
     bmyLoadCustomers();
+    bmyLoadEmployees();
 }
 
 
@@ -4175,3 +4304,4 @@ bmyOpenWorkspace = function(business) {
 /* ==========================================
    END BMY AI INTEGRATION
 ========================================== */
+
